@@ -1,0 +1,41 @@
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+# Visual Studio
+.vs/
+.vscode/
+*.csproj.user
+*.sln.DotSettings.user
+
+# NuGet
+.nuget/
+packages/
+*.nupkg
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+dev/
+
+out/
+
+docs/*
+
+!docs/docs.tex
+
+# Gemini
+
+GEMINI.md
