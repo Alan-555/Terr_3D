@@ -34,16 +34,9 @@ public class Scene
         //Spawn canvas
         new Canvas(this, "Canvas");
 
-        //Spawn Gameplay
-        new Gameplay(this);
-
-        Globals.Worldspawn.BoidManager.SpawnBoidGroups(5, 20);
 
         Globals.CurrentCamera = Globals.Player.LocalPlayer.PlayerCam;
 
-        //spawn pylon logic entity
-        PointPylon pylon = new PointPylon(worldSpawn.Onstage, "RescuePylon");
-        pylon.Transform.Position = new Vector3(Scene.PylonPos.X, worldSpawn.SampleHeight(Scene.PylonPos), Scene.PylonPos.Z);
 
         Diagnostics.Info("Scene init done");
     }
@@ -51,12 +44,9 @@ public class Scene
     public void InitMainMenu()
     {
         Globals.Player.LocalPlayer.Transform.Position = new(1000, 1000, 1000);
-        Globals.Worldspawn.BoidManager.SpawnBoids(64, 10);
         Globals.Player.LocalPlayer.SetEnabled(false);
         Globals.CurrentCamera.Transform.Position = new(-3, 13, 14);
         Globals.CurrentCamera.Transform.Rotation = Quaternion.FromAxisAngle(Vector3.UnitY, 45 * MathHelper.DegToRad);
-
-        Globals.Gameplay.IsGlobalGodMode = true;
 
         new LogicMainMenu(this);
     }

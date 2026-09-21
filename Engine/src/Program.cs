@@ -14,7 +14,7 @@ class Program
         }
         Diagnostics.Info("Initialising client...");
         //init the client window
-        InitClient(()=>InitRest(true));
+        InitClient(()=>InitRest(false));
     }
 
     static void InitClient(Action OnGpuReady)

@@ -42,8 +42,6 @@ public class Player : Entity, IPlayerProvider
     public Camera PlayerCam => playerCamera;
     public Player LocalPlayer => this;
 
-    EnvMusic _plrDamage;
-
     public Player(Scene scene, string name) : base(scene, name, false)
     {
         Register();
@@ -95,11 +93,6 @@ public class Player : Entity, IPlayerProvider
         damageParticles.doEmit = false;
         damageParticles.Speed = 3.5f;
         damageParticles.EndScale = 5f;
-
-        _plrDamage = new(scene, ResourceIndex.Audio.Damage)
-        {
-            MaxVolume = 1f
-        };
     }
 
     
@@ -109,15 +102,9 @@ public class Player : Entity, IPlayerProvider
         Onstage.Globals.Register<IPlayerProvider>(this);
     }
 
-    BoidBait? _heldBait;
-
     public override void OnUpdate(float dt)
     {
         base.OnUpdate(dt);
-
-        CheckDamage(dt);
-
-        UpdateSafety();
 
         //Debug player pos
         Onstage.Globals.Canvas.RenderLabel($"x|y|z {Transform}", 0);
@@ -128,10 +115,6 @@ public class Player : Entity, IPlayerProvider
         if (EngineWindow.Instance.KeyboardState.IsKeyPressed(Keys.F1))
         {
             ToggleFreeCam();
-        }
-        if (EngineWindow.Instance.KeyboardState.IsKeyPressed(Keys.F))
-        {
-            ToggleAttraction();
         }
         if (EngineWindow.Instance.IsKeyPressed(Keys.Escape))
         {
@@ -159,10 +142,6 @@ public class Player : Entity, IPlayerProvider
         if (!isPlayerFrozen)
         {
             Move(dt);
-            if (EngineWindow.Instance.MouseState.IsButtonPressed(MouseButton.Button2))
-            {
-                ThrowBait();
-            }
         }
         if (!isPlayerFrozen || debugCull)
             Turn(dt);
@@ -179,84 +158,6 @@ public class Player : Entity, IPlayerProvider
     }
 
 
-    float _nextSafetyUpdate = 0.5f;
-
-    public void UpdateSafety()
-    {
-        if (_heldBait == null) return;
-        if (_nextSafetyUpdate <= EngineWindow.Time)
-        {
-            _nextSafetyUpdate = EngineWindow.Time + 0.5f;
-        }
-        else
-        {
-            return;
-        }
-        bool isSafe = Onstage.Partitioner.Raycast(new(Transform.Position, Vector3.UnitY), out _);
-
-        _heldBait.ChangeStrength(isSafe);
-
-
-    }
-
-
-    public void DamagePlr(float dmg)
-    {
-        damage += dmg;
-    }
-
-    void CheckDamage(float dt)
-    {
-        Onstage.Globals.Canvas.RenderLabel($"Damage {damage}", 7);
-        if (Onstage.Globals.Gameplay.ShouldBeDamaged(Transform.Position))
-        {
-            _plrDamage.FadeIn();
-            damageParticles.doEmit = true;
-            damage += dt * 0.7f;
-        }
-        else
-        {
-            _plrDamage.FadeOut();
-            damageParticles.doEmit = false;
-            if (damage > 0)
-                damage = MathF.Max(0, damage - dt);
-        }
-
-        float t = damage / criticalDamage;
-
-        ((ScreenTextureMaterial)damageOverlayer.material!).colour.W = t;
-
-        if (t > 1f)
-        {
-            _ = PlrDead();
-        }
-    }
-    bool shown = false;
-    async Task PlrDead()
-    {
-        if (shown) return;
-        EngineWindow.Instance.IsPaused = true;
-        shown = true;
-        await NativeDialogue.ShowMessageAsync($"You have decayed into nothing.\nYou saved {Onstage.Globals.Worldspawn.BoidManager.RescuedBoids}/{Onstage.Globals.Worldspawn.BoidManager.TotalBoids} dragons.");
-        EngineWindow.Instance.Close();
-    }
-
-    void ToggleAttraction()
-    {
-        if (_heldBait == null)
-        {
-            _heldBait = new BoidBait(Onstage, "HeldBait", true);
-            _heldBait.Transform.SetParent(Transform);
-            _heldBait.Transform.LocalPosition = new Vector3(0, 0f, 0);
-            _heldBait.StartAttracting(false);
-        }
-        else
-        {
-            _heldBait.Cleanup();
-            _heldBait.Destroy();
-            _heldBait = null;
-        }
-    }
 
     void ToggleFreeCam()
     {
@@ -329,20 +230,7 @@ public class Player : Entity, IPlayerProvider
         if (physics.IsGrounded)
             physics.Push(new Vector3(0, 5f, 0));
     }
-    BoidBait[] _baits = new BoidBait[3];
-    int _boidPtr = 0;
-    void ThrowBait()
-    {
-        BoidBait bait = new(Onstage, "");
-        _baits[_boidPtr]?.Cleanup();
-        _baits[_boidPtr]?.Destroy();
-        _baits[_boidPtr] = bait;
-        _boidPtr = (_boidPtr + 1) % _baits.Length;
-        bait.Transform.Position = playerCamera.Transform.Position;
-
-        // Push in camera forward direction
-        bait.GetComponent<Physics>()?.Push(playerCamera.Transform.Forward * 15f + physics.Velocity);
-    }
+    
 
     void Accelerate(Vector3 wishDir, float wishSpeed, float dt)
     {

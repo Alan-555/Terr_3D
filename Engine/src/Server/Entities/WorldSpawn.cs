@@ -33,9 +33,6 @@ public class Worldspawn : Entity, IWorldspawnProvider
     List<ModelEntity> modelEntities = [];
     public List<ModelEntity> ModelEntities => modelEntities;
 
-    public BoidManager BoidManager => _boidManager;
-    private readonly BoidManager _boidManager;
-
     Worldspawn IWorldspawnProvider.Worldspawn => this;
 
     public Camera CurrentCamera { get => _currentCamera; set => _currentCamera = value; }
@@ -57,13 +54,8 @@ public class Worldspawn : Entity, IWorldspawnProvider
         TerrainSize = terrainMap.Width * HorizontalPixelUnits;
         Diagnostics.Info("Begin terrain generation...");
         GenerateChunks();
-        PopulateTerrain();
 
-
-
-        _boidManager = new(scene, "BoidManagerSingleton");
-
-        _ = new Environment(Onstage, "env_weather", false);
+        _ = new Environment(scene, "Environment", false);
 
     }
 
@@ -92,11 +84,6 @@ public class Worldspawn : Entity, IWorldspawnProvider
             terrainEntities.Add(ent);
             ent.Transform.SetParent(Transform);
         }
-    }
-
-    void PopulateTerrain()
-    {
-        WorldGenerator.PopulateWithModels(this, modelEntities, terrainMap);
     }
 
 

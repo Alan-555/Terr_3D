@@ -361,11 +361,7 @@ public class SceneDrawer
                 shader.SetUniform("skyTexture", ref _skyBufferTexture, 30);
             var half = Globals.Worldspawn.TerrainSize / 2f;
             shader.SetUniform("worldHalfExtents", ref half);
-            shader.SetUniformNoRef("fogDensity", Globals.Environment.CurrentEnv.fogDensity);
-        }
-        if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_WEATHER_EFFECTS))
-        {
-            Globals.Environment.Weather.SetUniforms(shader);
+            shader.SetUniformNoRef("fogDensity", 0.001f); //TODO: fog
         }
     }
 

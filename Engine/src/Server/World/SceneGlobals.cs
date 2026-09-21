@@ -35,10 +35,9 @@ public class SceneGlobals
         throw new KeyNotFoundException($"Provider of type {typeof(T).Name} is not registered");
     }
 
+    public IEnvironmentProvider Environment => Get<IEnvironmentProvider>();
 
     public Worldspawn Worldspawn => Get<IWorldspawnProvider>().Worldspawn;
-    public IEnvironmentProvider Environment => Get<IEnvironmentProvider>();
-    public Gameplay Gameplay => Get<IGameplayProvider>().Logic;
     public Camera CurrentCamera {get=> Get<IWorldspawnProvider>().CurrentCamera; set=> Get<IWorldspawnProvider>().CurrentCamera = value; }
     public IPlayerProvider Player => Get<IPlayerProvider>();
 
@@ -54,8 +53,6 @@ public interface IProvider
 public interface IWorldspawnProvider : IProvider
 {
     Worldspawn Worldspawn { get; }
-
-    BoidManager BoidManager { get; }
     
     Camera CurrentCamera {get; set;}
 }
@@ -65,13 +62,6 @@ public interface IEnvironmentProvider : IProvider
     Entity Sun { get; }
     Vector3 SunDir => Vector3.Transform(Vector3.UnitZ, Sun.Transform.Rotation);
     Renderer Sky { get; }
-    Entities.Environment Weather { get; }
-    EnvInfo CurrentEnv { get; }
-}
-
-public interface IGameplayProvider : IProvider
-{
-    Gameplay Logic { get; }
 }
 
 public interface IPlayerProvider : IProvider

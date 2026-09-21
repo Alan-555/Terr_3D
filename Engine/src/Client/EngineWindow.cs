@@ -8,8 +8,6 @@ using Terr3D.Server.Entities;
 using Terr3D.Server.World;
 using Terr3D.Utils;
 
-using Terr3D.Client.Audio;
-
 namespace Terr3D.Client;
 
 /// <summary>
@@ -84,8 +82,6 @@ public class EngineWindow : GameWindow
     protected override void OnLoad()
     {
         base.OnLoad();
-
-        AudioManager.Initialize();
 
         //Initialises GL
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -181,7 +177,6 @@ public class EngineWindow : GameWindow
         base.OnUnload();
 
         Diagnostics.Info("Engine clean up...");
-        AudioManager.Cleanup();
         BoundScene?.DestroyScene();
     }
 }

@@ -60,51 +60,6 @@ public class WorldGenerator
         return meshes;
     }
 
-
-
-    public static void PopulateWithModels(Worldspawn worldSpawn, List<ModelEntity> modelEntities, Image<Rgba32> image)
-    {
-
-        image.ProcessPixelRows(accessor =>
-        {
-            for (int y = 0; y < accessor.Height; y++)
-            {
-                Span<Rgba32> pixelRow = accessor.GetRowSpan(y);
-
-                for (int x = 0; x < pixelRow.Length; x++)
-                {
-                    //retrieve the green channel value
-                    byte pixel = pixelRow[x].G;
-
-                    if (pixel == 0) continue; //no object
-
-                    if (!WorldObjects.Models.TryGetValue(pixel, out var modelName))
-                    {
-                        Diagnostics.Warn($"Unknown byte value in object map {pixel}");
-                        continue;
-                    }
-
-                    var model = ResourceManager.Models[modelName];
-
-
-                    if (model == null)
-                    {
-                        Diagnostics.Error($"Spawning unknown modeldef '{modelName}'");
-                        continue;
-                    }
-
-                    modelEntities.Add(SpawnModelEntity(worldSpawn, model, new Vector2(x,y) / image.Width));
-
-                }
-            }
-        });
-
-        //spawn rescue pylon
-        modelEntities.Add(SpawnModelEntity(worldSpawn, ResourceManager.Models["pylon"], worldSpawn.WorldToNormalisedMapSpace(Scene.PylonPos)));
-
-    }
-
-
     static ModelEntity SpawnModelEntity(Worldspawn worldspawn, ModelDefinition model, Vector2 pos)
     {
 

@@ -171,63 +171,6 @@ public class DebugConsole
         scene.Globals.Player.PlayerCam.Transform.Parent!.Transform.Position = new(x, y, z);
     }
 
-    [ConsoleCommand(_Player, "dmg", "Damage to player")]
-    public void PlrHurt(float amount)
-    {
-        scene.Globals.Player.LocalPlayer.DamagePlr(amount);
-    }
-
-    //Environment commands
-
-    [ConsoleCommand(_Env, "boids", "Spawns the desired amount of boids in the desired radius")]
-    public void DebugSpawnBoids(int num, int radius)
-    {
-        scene.Globals.Worldspawn.BoidManager.SpawnBoids(num, radius);
-    }
-
-    [ConsoleCommand(_Env, "fog", "Change the fog density")]
-    public void EnvFog(float density)
-    {
-        scene.Globals.Environment.Weather.SetFogDensity(density);
-    }
-
-    [ConsoleCommand(_Env, "fog_over", "Sets the fog override flag")]
-    public void FogOver(bool flag)
-    {
-        scene.Globals.Environment.Weather.FogOverride = flag;
-    }
-
-    [ConsoleCommand(_Env, "strike", "Trigger a lighting")]
-    public void EnvLightning(float runtime)
-    {
-        scene.Globals.Environment.Weather.TriggerLighting(runtime);
-    }
-
-    [ConsoleCommand(_Env, "storm_start", "Starts a storm")]
-    public void EnvStormStart(float coolDown)
-    {
-        scene.Globals.Environment.Weather.StartStorm(coolDown);
-    }
-
-
-    [ConsoleCommand(_Env, "storm_end", "Ends a storm")]
-    public void EnvStromEnd()
-    {
-        scene.Globals.Environment.Weather.StopStorm();
-    }
-
-    [ConsoleCommand(_Env, "time", "Sets the time")]
-    public void EnvTime(float time)
-    {
-        scene.Globals.Environment.Sun.Transform.Rotation = Quaternion.FromAxisAngle(Vector3.UnitX, time * MathF.Tau + MathF.PI);
-    }
-
-    [ConsoleCommand(_Env, "morale", "Sets the morale")]
-    public void EnvMorale(float morale)
-    {
-        scene.Globals.Environment.Weather.SetMorale(morale);
-    }
-
     //Entity commands
 
     [ConsoleCommand(_Ent, "remove", "Kills the specified entity")]
@@ -441,10 +384,7 @@ Enabled: {entity.IsEnabled} | Static: {entity.IsStatic} | Destroyed: {entity.IsD
         else if (type == "misc")
         {
             _showMisc = !_showMisc;
-            foreach (var e in scene.SceneRegistry.Entities.OfType<CloudHazard>())
-            {
-                ShowDebugFor(e, [e], WireframeBoxRenderer.ColourCloudPoison, _showMisc);
-            }
+            
 
         }
 

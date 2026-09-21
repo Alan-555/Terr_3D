@@ -99,7 +99,6 @@ public static class ResourceManager
         foreach (var file in Directory.GetFiles(audioDir, "*.wav"))
         {
             var name = Path.GetFileName(file);
-            Audio.Register(name, AudioLoader.LoadWav(file));
         }
     }
 
