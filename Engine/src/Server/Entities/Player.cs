@@ -42,20 +42,18 @@ public class Player : Entity, IPlayerProvider
     public Camera PlayerCam => playerCamera;
     public Player LocalPlayer => this;
 
-    public Player(Scene scene, string name) : base(scene, name, false)
+    public Player(string name, Worldspawn worldspawn) : base(name, worldspawn, false)
     {
         Register();
         //Spawn the camera pivot
-        EmptyEntity cameraPivot = new(scene, "PlrNeck", false);
-        cameraPivot.Transform.SetParent(Transform);
+        EmptyEntity cameraPivot = new("PlrNeck", this, false);
         cameraPivot.Transform.LocalPosition = new(0, 1.8f, 0);
 
         //Attach the camera component to the pivot
         playerCamera = cameraPivot.AddComponent<Camera>();
 
         //Spawn the mesh representation of the player
-        EmptyEntity playerMesh = new(scene, "PlrWorldModel", false);
-        playerMesh.Transform.SetParent(Transform);
+        EmptyEntity playerMesh = new("PlrWorldModel", this, false);
         playerMesh.Transform.LocalRotation = Quaternion.FromEulerAngles(0, MathF.PI, 0);
 
         //Add a renderer to the mesh
@@ -76,7 +74,7 @@ public class Player : Entity, IPlayerProvider
         physics.Collider = AddComponent(new AABB_Collider(new Vector3(0.25f, 1.8f / 2f, 0.25f), new Vector3(0, 1.8f / 2f, 0)));
 
         //Free cam feature
-        freeCamera = new FreeCamera(scene, "FreeCam");
+        freeCamera = new FreeCamera("FreeCam", Onstage.Worldspawn);
         freeCamera.SetEnabled(false);
 
         damageOverlayer = AddComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.ScreenTexture], ResourceManager.Meshes[ResourceIndex.Meshes.Quad], RendererClass.RENDERER_PERSISTENT)
@@ -89,13 +87,13 @@ public class Player : Entity, IPlayerProvider
             }
         });
 
-        damageParticles =  AddComponent(new SmokeParticleSystem(new Vector4(141, 148, 95, 127) / 255f, 100, true));
+        damageParticles = AddComponent(new SmokeParticleSystem(new Vector4(141, 148, 95, 127) / 255f, 100, true));
         damageParticles.doEmit = false;
         damageParticles.Speed = 3.5f;
         damageParticles.EndScale = 5f;
     }
 
-    
+
 
     public void Register()
     {
@@ -230,7 +228,7 @@ public class Player : Entity, IPlayerProvider
         if (physics.IsGrounded)
             physics.Push(new Vector3(0, 5f, 0));
     }
-    
+
 
     void Accelerate(Vector3 wishDir, float wishSpeed, float dt)
     {

@@ -39,14 +39,14 @@ public class Environment : Entity, IUpdates, IEnvironmentProvider
     };
 
 
-    public Environment(Scene scene, string name, bool isStatic) : base(scene, name, isStatic)
+    public Environment(string name, Entity parent) : base(name, parent, true)
     {
         Register();
         //Add a sky quad
         _sky = AddComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Sky], ResourceManager.Meshes[ResourceIndex.Meshes.SkyQuad], RendererClass.RENDER_IGNORE));
 
         //Add the sun
-        _sun = new EmptyEntity(scene, "Sun", false);
+        _sun = new EmptyEntity("Sun", Onstage.Worldspawn, false);
     }
 
     public void Register()

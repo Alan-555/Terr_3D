@@ -23,7 +23,7 @@ public abstract class Component : IThinker
     /// <summary>
     /// A shortcut to the entity's transform
     /// </summary>
-    public Transform Transform => Entity.Transform;
+    public Entities.Transform Transform => Entity.Transform;
 
     public bool HasPriorityUpdate = false;
 

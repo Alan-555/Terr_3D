@@ -10,17 +10,20 @@ namespace Terr3D.Server.World;
 
 public abstract class Scene
 {
-    public Worldspawn Worldspawn;
-    public SceneRegistry SceneRegistry { get; private set; } = new();
-    public SceneGlobals Globals { get; private set; } = new();
+    public Worldspawn Worldspawn {get; private init;}
+    public SceneRegistry SceneRegistry { get; private init; } = new();
+    public SceneGlobals Globals { get; private init; } = new();
 
-    public SpacePartitioner Partitioner { get; private set; }
+    public SpacePartitioner Partitioner { get; private init; }
 
     public Scene()
     {
-        
         Worldspawn = new(this);
-        new Player(this, "Player");
+        
+        //Spawn canvas
+        new Canvas("Canvas", Worldspawn);
+
+        new Player("Player", Worldspawn);
         
         SpawnStaticEntities();
         Partitioner = new(null);
@@ -35,30 +38,18 @@ public abstract class Scene
     /// </summary>
     public void InitWorld()
     {
-        //Spawn player
-
-        Diagnostics.Info("Initialising world...");
-        Terrain worldSpawn = new(this, "worldspawn", "res/textures/skala.png");
-
         
-
-
-
-
-        Globals.CurrentCamera = Globals.Player.LocalPlayer.PlayerCam;
-
-
-        Diagnostics.Info("Scene init done");
     }
 
     public void InitMainMenu()
     {
+        /*
         Globals.Player.LocalPlayer.Transform.Position = new(1000, 1000, 1000);
         Globals.Player.LocalPlayer.SetEnabled(false);
         Globals.CurrentCamera.Transform.Position = new(-3, 13, 14);
         Globals.CurrentCamera.Transform.Rotation = Quaternion.FromAxisAngle(Vector3.UnitY, 45 * MathHelper.DegToRad);
 
-        new LogicMainMenu(this);
+        new LogicMainMenu(this);*/
     }
 
     public void InitDebugScene()
@@ -108,12 +99,12 @@ public abstract class Scene
 
     public void DestroyScene()
     {
-        Entity[] tempE = new Entity[SceneRegistry.Entities.Count];
+       /*Entity[] tempE = new Entity[SceneRegistry.Entities.Count];
         SceneRegistry.Entities.CopyTo(tempE);
         foreach (var ent in tempE)
         {
             ent.Destroy();
-        }
+        }*/
 
     }
 }

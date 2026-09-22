@@ -8,7 +8,7 @@ namespace Terr3D.Server.Entities;
 /// </summary>
 public class EmptyEntity : Entity
 {
-    public EmptyEntity(Scene scene, string name, bool isStatic) : base(scene, name, isStatic)
+    public EmptyEntity(string name, Entity parent, bool isStatic) : base(name, parent, isStatic)
     {
     }
 }
@@ -20,7 +20,7 @@ public class EmptyEntity : Entity
 public class TerrainEntity : EmptyEntity
 {
     public float maxHeight, minHeight;
-    public TerrainEntity(Scene scene, string name, Vector2 heightData) : base(scene, name, true)
+    public TerrainEntity(string name, Entity parent, Vector2 heightData) : base(name, parent, true)
     {
         minHeight = heightData.X;
         maxHeight = heightData.Y;

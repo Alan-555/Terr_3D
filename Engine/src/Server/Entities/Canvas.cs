@@ -42,11 +42,11 @@ public class Canvas : Entity, ICanvasProvider
     private bool _isDisplayingOutput = false;
     private readonly DebugConsole _debugConsole;
 
-    public Canvas(Scene scene, string name) : base(scene, name, true)
+    public Canvas(string name, Entity parent) : base(name, parent, true)
     {
         Register();
         FontRenderer = AddComponent<FontRenderer>();
-        _debugConsole = new DebugConsole(scene);
+        _debugConsole = new DebugConsole(Onstage);
 
         EngineWindow.Instance.TextInput += OnTextInput;
         EngineWindow.Instance.KeyDown += OnKeyDown;

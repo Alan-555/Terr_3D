@@ -11,13 +11,13 @@ namespace Terr3D.Server.Entities;
 /// </summary>
 public class ModelEntity : Entity
 {
-    public Renderer Renderer {get; private set;}
-    public ModelEntity(Scene scene, string name, ShaderProgram shader, Mesh mesh, bool isStatic = false) : base(scene, name, isStatic)
+    public Renderer Renderer { get; private set; }
+    public ModelEntity(string name, Entity parent, ShaderProgram shader, Mesh mesh, bool isStatic = false) : base(name, parent, isStatic)
     {
         Renderer = AddComponent(new Renderer(shader, mesh, isStatic ? RendererClass.RENDERER_STATIC : RendererClass.RENDERER_DYNAMIC));
     }
 
-    public ModelEntity(Scene scene, ModelDefinition definition) : base(scene, $"{definition.Name}$", definition.Properties.IsStatic)
+    public ModelEntity(Entity parent, ModelDefinition definition) : base($"{definition.Name}$", parent, definition.Properties.IsStatic)
     {
         Mesh mesh = ResourceManager.Meshes[definition.Mesh];
 
@@ -27,7 +27,7 @@ public class ModelEntity : Entity
             //Fallback to a cube so we don't crash
             mesh = ResourceManager.Meshes[ResourceIndex.Meshes.Cube];
         }
-        
+
         Renderer = AddComponent(new Renderer(ResourceManager.Shaders[definition.Material.Shader], mesh, definition.Properties.IsStatic ? RendererClass.RENDERER_STATIC : RendererClass.RENDERER_DYNAMIC));
 
         var mat = definition.Material.Properties;
@@ -43,7 +43,7 @@ public class ModelEntity : Entity
             shininess = mat.Shininess,
 
         };
-        
+
         if (definition.Colliders != null)
         {
             foreach (var col in definition.Colliders)

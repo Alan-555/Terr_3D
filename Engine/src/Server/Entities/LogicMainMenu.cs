@@ -7,7 +7,7 @@ namespace Terr3D.Server.Entities;
 
 public class LogicMainMenu : Entity, IUpdates
 {
-    public LogicMainMenu(Scene scene) : base(scene, "MainMenu", false)
+    public LogicMainMenu(Worldspawn worldspawn) : base("MainMenu", worldspawn, true)
     {
         
     }

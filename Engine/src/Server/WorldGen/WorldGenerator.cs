@@ -47,7 +47,7 @@ public class WorldGenerator
                 var (terrainMesh, heightData) = WorldGeneratorHelpers.GeneratePlane(
                     QuadsPerChunk,
                     step,
-                    (x, z) => worldSpawn.SampleHeightSlow(new Vector2(x, z)) + h,
+                    (x, z) => worldSpawn.SampleHeight(new Vector2(x, z)) + h,
                     (x, z) => worldSpawn.GetTerrainNormal((x, 0, z), 0.5f),
                     new(px, 0, pz)
                 );
@@ -60,12 +60,12 @@ public class WorldGenerator
         return meshes;
     }
 
-    static ModelEntity SpawnModelEntity(Terrain worldspawn, ModelDefinition model, Vector2 pos)
+    /*static ModelEntity SpawnModelEntity(Terrain worldspawn, ModelDefinition model, Vector2 pos)
     {
 
         var modelEntity = new ModelEntity(worldspawn.Onstage, model);
 
-        var worldSpace2 = worldspawn.NormalisedMapSpaceToWorld(pos);
+        var worldSpace2 = worldspawn.HeightMapSpaceToWorld(pos);
         var worldSpace3 = new Vector3(worldSpace2.X, worldspawn.SampleHeightSlow(worldSpace2), worldSpace2.Y);
         var terrainEntity = worldspawn.GetTerrainEntityAt(worldSpace3.X, worldSpace3.Z);
         modelEntity.Transform.Position = worldSpace3;
@@ -73,7 +73,7 @@ public class WorldGenerator
         modelEntity.Transform.LocalEuler = new(0, Random.Shared.NextSingle() * MathF.Tau, 0);
         modelEntity.ComputeStaticBB();
         return modelEntity;
-    }
+    }*/
 
 
 }

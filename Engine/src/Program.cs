@@ -27,7 +27,7 @@ class Program
 
     static void InitRest(bool isMenu)
     {
-        Scene scene = new();
+        Scene scene = new ConcreteScene();
 
         //once client and GL context is ready, we initialise the rest
         scene.InitWorld();

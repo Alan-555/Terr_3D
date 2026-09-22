@@ -5,15 +5,12 @@ namespace Terr3D.Server.Entities;
 
 public class Worldspawn : Entity
 {
-    new Entity Parent => null!;
+    public new Entity Parent => null!;
 
-    public Worldspawn(Scene scene) : base("worldspawn", false)
+    public Scene Scene {get; private init;}
+
+    public Worldspawn(Scene scene) : base("worldspawn", null!, false)
     {
-        //Spawn canvas
-        new Canvas(this, "Canvas");
-
-        //Prepare the space partitioner
-        Diagnostics.Info("Generating partitioning data...");
-        Partitioner = new(worldSpawn);
+        Scene = scene;
     }
 }

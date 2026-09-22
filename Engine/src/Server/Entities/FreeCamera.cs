@@ -19,7 +19,7 @@ public class FreeCamera : Entity
     float moveSpeed = 3;
     float sprintSpeedModifier = 10;
 
-    public FreeCamera(Scene scene, string name) : base(scene, name, false)
+    public FreeCamera(string name, Entity parent) : base(name, parent, false)
     {
         camera = AddComponent<Camera>();
     }

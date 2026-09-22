@@ -13,7 +13,7 @@ public class DebugEntity : Entity
     Renderer renderer;
     bool doRotate = true;
 
-    public DebugEntity(Scene scene, string name, Mesh mesh, bool doRotate = true) : base(scene, name, false)
+    public DebugEntity(string name, Entity parent, Mesh mesh, bool doRotate = true) : base(name, parent, false)
     {
         this.doRotate = doRotate;
 

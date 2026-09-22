@@ -147,6 +147,8 @@ public class DebugConsole
             .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(baseType))];
     }
 
+#if false
+
     public Entities.Entity? GetEntity(string name)
     {
         if (name == "!picker")
@@ -528,6 +530,7 @@ Enabled: {entity.IsEnabled} | Static: {entity.IsStatic} | Destroyed: {entity.IsD
         Program.NewScene();
         return "";
     }
+#endif
 }
 
 

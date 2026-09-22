@@ -54,9 +54,9 @@ public abstract class Entity : IThinker, IUpdates
     public bool IsEnabled => isEnabled;
     bool isEnabled = true;
 
-    Worldspawn _worldSpawn;
 
-    public Worldspawn Worldspawn => _worldSpawn;
+    private Scene _currentScene;
+    public Scene Onstage => _currentScene;
 
 
     private static long entId = 0;
@@ -78,8 +78,14 @@ public abstract class Entity : IThinker, IUpdates
         IsStatic = isStatic;
         Name = name;
         Transform = new(this);
+        
+        if(this is Worldspawn)
+        {
+            return;
+        }
 
-        if (Parent == null)
+
+        if (parent == null)
         {
             Diagnostics.Error($"Orphaned entity {this} could not set its parent!");
             return;
@@ -91,7 +97,7 @@ public abstract class Entity : IThinker, IUpdates
 
     public void SetParent(Entity? parent)
     {
-        parent ??= _worldSpawn;
+        parent ??= Onstage.Worldspawn;
         
         if(Parent != null)
         {
@@ -111,7 +117,7 @@ public abstract class Entity : IThinker, IUpdates
         {
             parent = parent.Parent;
         }
-        _worldSpawn = (Worldspawn)parent;
+        _currentScene = ((Worldspawn)parent).Scene;
     }
 
 
@@ -161,8 +167,8 @@ public abstract class Entity : IThinker, IUpdates
         if (IsStatic) return;
         foreach (var component in components)
             component.Thinker.OnTransformUpdate();
-        foreach (var child in children)
-            child.Entity.Thinker.OnTransformUpdate();
+        foreach (var child in _children)
+            child.Thinker.OnTransformUpdate();
     }
 
     public void SetEnabled(bool state)
@@ -176,9 +182,9 @@ public abstract class Entity : IThinker, IUpdates
         {
             component.SetEnabled(state);
         }
-        foreach (var child in children)
+        foreach (var child in _children)
         {
-            child.Entity.SetEnabled(isEnabled);
+            child.SetEnabled(isEnabled); //TODO: the children should remember their enabled state and always submit to their parent
         }
     }
 
@@ -199,22 +205,18 @@ public abstract class Entity : IThinker, IUpdates
     public void Destroy()
     {
         IsDestroyed = true;
-        Onstage.SceneRegistry.UnregisterEntity(this);
         OnDestroyed();
         foreach (var c in components)
         {
             c.Destroy();
         }
         components.Clear();
-        foreach (var e in children)
+        foreach (var e in _children)
         {
-            e.Entity.Destroy();
+            e.Destroy();
         }
-        if (Transform._parent != null)
-        {
-            if (!Transform._parent.Entity.IsDestroyed)
-                Transform._parent.Entity.children.Remove(Transform);
-        }
+        Parent._children.Remove(this);
     }
+
     public virtual void OnDestroyed() { }
 }
