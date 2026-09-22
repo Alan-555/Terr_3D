@@ -2,18 +2,30 @@ using System.Runtime.CompilerServices;
 using OpenTK.Mathematics;
 using Terr3D.Server.Shared;
 
-namespace Terr3D.Server.Components;
+namespace Terr3D.Server.Entities;
 
 
 /// <summary>
 /// Class used to represent all transformations of an object. Provides model matrix with caching logic
 /// </summary>
-public class Transform() : Component
+public class Transform
 {
+
+    public Transform(Entity entity)
+    {
+        Entity = entity;
+        entity.OnParentChanged += UpdateParent;
+    }
+
     /// <summary>
-    /// The hierarchical parent
+    /// The entity this transform belongs to
     /// </summary>
-    public Transform? Parent { get; private set; }
+    public readonly Entity Entity;
+
+    /// <summary>
+    /// The cached parent
+    /// </summary>
+    private Transform? _parent;
 
     /// <summary>
     /// The local position of this object
@@ -79,18 +91,18 @@ public class Transform() : Component
     {
         get
         {
-            if (Parent == null) return LocalPosition;
+            if (_parent == null) return LocalPosition;
             return GlobalMatrix.ExtractTranslation();
         }
         set
         {
-            if (Parent == null)
+            if (_parent == null)
             {
                 LocalPosition = value;
                 return;
             }
 
-            Matrix4 parentGlobalInverse = Matrix4.Invert(Parent.GlobalMatrix);
+            Matrix4 parentGlobalInverse = Matrix4.Invert(_parent.GlobalMatrix);
             LocalPosition = Vector3.TransformPosition(value, parentGlobalInverse);
         }
     }
@@ -101,17 +113,17 @@ public class Transform() : Component
     {
         get
         {
-            if (Parent == null) return LocalRotation;
-            return Parent.Rotation * LocalRotation;
+            if (_parent == null) return LocalRotation;
+            return _parent.Rotation * LocalRotation;
         }
         set
         {
-            if (Parent == null)
+            if (_parent == null)
             {
                 LocalRotation = value;
                 return;
             }
-            Quaternion parentInverse = Quaternion.Invert(Parent.Rotation);
+            Quaternion parentInverse = Quaternion.Invert(_parent.Rotation);
             LocalRotation = parentInverse * value;
         }
     }
@@ -123,20 +135,20 @@ public class Transform() : Component
     {
         get
         {
-            if (Parent == null) return LocalScale;
+            if (_parent == null) return LocalScale;
 
-            Vector3 parentScale = Parent.Scale;
+            Vector3 parentScale = _parent.Scale;
             return new Vector3(LocalScale.X * parentScale.X, LocalScale.Y * parentScale.Y, LocalScale.Z * parentScale.Z);
         }
         set
         {
-            if (Parent == null)
+            if (_parent == null)
             {
                 LocalScale = value;
                 return;
             }
 
-            Vector3 parentScale = Parent.Scale;
+            Vector3 parentScale = _parent.Scale;
             LocalScale = new Vector3(value.X / parentScale.X, value.Y / parentScale.Y, value.Z / parentScale.Z);
         }
     }
@@ -178,14 +190,14 @@ public class Transform() : Component
     /// <summary>
     /// The global 4x4 matrix describing all transformations
     /// </summary>
-    public Matrix4 GlobalMatrix => LocalMatrix * (Parent?.GlobalMatrix ?? Matrix4.Identity);//TODO: global matrix caching. Propagate invalidation to children!!!!
+    public Matrix4 GlobalMatrix => LocalMatrix * (_parent?.GlobalMatrix ?? Matrix4.Identity);//TODO: global matrix caching. Propagate invalidation to children!!!!
     Matrix4? _cachedLocalMatrix = null;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void SetDirty()
     {
         _cachedLocalMatrix = null;
-        Entity.Thinker.OnTransformUpdate();
+        //TODO: transform update
     }
 
     Matrix4 ComputeLocalMatrix()
@@ -199,27 +211,15 @@ public class Transform() : Component
         return _cachedLocalMatrix.Value;
     }
 
-    /// <summary>
-    /// Set's a new parent while keeping its position in world space. This function recalculates the local transformations.
-    /// </summary>
-    /// <param name="parent">The new parent</param>
-    public void SetParent(Transform parent)
+    private void UpdateParent()
     {
         var worldPos = Position;
         var worldRot = Rotation;
         var worldScale = Scale;
-        Parent = parent;
+        _parent = Entity.Parent.Transform;
         Position = worldPos;
         Rotation = worldRot;
         Scale = worldScale;
-        parent.Entity.children.Add(this);
-    }
-
-    public void RemoveParent()
-    {
-        if(Parent == null) return;
-        Parent.Entity.children.Remove(this);
-        Parent = null;
     }
 
 

@@ -22,7 +22,7 @@ public class WorldGenerator
     /// Generates all terrain meshes and packs chunk heights + the world pos into one tuple FIXME: not ideal
     /// </summary>
     /// <param name="worldSpawn">The worldspawn to generate for</param>
-    public static List<(Mesh, Vector2, Vector2)> GenerateTerrainMesh(Worldspawn worldSpawn)
+    public static List<(Mesh, Vector2, Vector2)> GenerateTerrainMesh(Terrain worldSpawn)
     {
         //calculate the number of total chunks (per axis)
         var NumChunks = (int)Math.Ceiling(worldSpawn.TerrainSize * QuadsPerMeter / QuadsPerChunk);
@@ -60,7 +60,7 @@ public class WorldGenerator
         return meshes;
     }
 
-    static ModelEntity SpawnModelEntity(Worldspawn worldspawn, ModelDefinition model, Vector2 pos)
+    static ModelEntity SpawnModelEntity(Terrain worldspawn, ModelDefinition model, Vector2 pos)
     {
 
         var modelEntity = new ModelEntity(worldspawn.Onstage, model);

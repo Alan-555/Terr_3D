@@ -12,7 +12,7 @@ public class SpacePartitioner
 
     readonly QuadTreeNode _rootNode;
 
-    public SpacePartitioner(Worldspawn worldSpawn)
+    public SpacePartitioner(Terrain worldSpawn)
     {
         _rootNode = FrustumCulling.ConstructForTerrain(worldSpawn);
     }

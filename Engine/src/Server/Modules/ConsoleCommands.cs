@@ -322,7 +322,7 @@ public class DebugConsole
         }
 
         return $@"{childInfo}
-Parent: {entity.Transform.Parent?.Entity.ToString() ?? "orphan"}
+Parent: {entity.Transform._parent?.Entity.ToString() ?? "orphan"}
 {compInfo}
 Enabled: {entity.IsEnabled} | Static: {entity.IsStatic} | Destroyed: {entity.IsDestroyed}
 {entity}

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using OpenTK.Mathematics;
 using Terr3D.Client;
 using Terr3D.Client.Resources;
@@ -16,11 +17,6 @@ public abstract class Entity : IThinker, IUpdates
     public string Name { get; set; }
 
     /// <summary>
-    /// The scene this entity is on
-    /// </summary>
-    public Scene Onstage { get; }
-
-    /// <summary>
     /// The transformation of this entity
     /// </summary>
     public Transform Transform { get; private init; }
@@ -33,7 +29,7 @@ public abstract class Entity : IThinker, IUpdates
     /// <summary>
     /// Whether this entity is static
     /// </summary>
-    public bool IsStatic {get; private set; }
+    public bool IsStatic { get; private set; }
 
     /// <summary>
     /// List of all attached components
@@ -41,14 +37,26 @@ public abstract class Entity : IThinker, IUpdates
     public List<Component> components = [];
 
     /// <summary>
+    /// The Parent of this entity
+    /// </summary>
+    public Entity Parent { get; private set; }
+
+    /// <summary>
     /// List of its children
     /// </summary>
-    public readonly List<Transform> children = [];
+    private readonly List<Entity> _children = [];
+
+
+    public ReadOnlyCollection<Entity> Children => _children.AsReadOnly();
 
     public IThinker Thinker => this;
 
     public bool IsEnabled => isEnabled;
     bool isEnabled = true;
+
+    Worldspawn _worldSpawn;
+
+    public Worldspawn Worldspawn => _worldSpawn;
 
 
     private static long entId = 0;
@@ -56,22 +64,56 @@ public abstract class Entity : IThinker, IUpdates
 
     private long NextEntId => this.IsStatic ? staticEntId++ : entId++;
 
-    public Entity(Scene scene, string name, bool isStatic)
+
+    public event Action OnParentChanged;
+
+    public Entity(string name, Entity parent, bool isStatic = false)
     {
         if (name == "")
         {
-            name = this.GetType().Name+NextEntId;
+            name = this.GetType().Name + NextEntId;
         }
-        if(name.Contains('$'))
-            name = name.Replace("$", Name+NextEntId);
+        if (name.Contains('$'))
+            name = name.Replace("$", Name + NextEntId);
         IsStatic = isStatic;
         Name = name;
-        Onstage = scene;
-        Transform = AddComponent<Transform>();
-        
-        // Automatic registration
-        Onstage.SceneRegistry.RegisterEntity(this);
+        Transform = new(this);
+
+        if (Parent == null)
+        {
+            Diagnostics.Error($"Orphaned entity {this} could not set its parent!");
+            return;
+        }
+
+        SetParent(parent);
+        CacheWorldspawn();
     }
+
+    public void SetParent(Entity? parent)
+    {
+        parent ??= _worldSpawn;
+        
+        if(Parent != null)
+        {
+            //we've been disowned :(
+            Parent._children.Remove(this);
+        }
+
+        Parent = parent;
+        Parent._children.Add(this);
+        OnParentChanged.Invoke();
+    }
+
+    private void CacheWorldspawn()
+    {
+        var parent = this;
+        while (parent.Parent != null)
+        {
+            parent = parent.Parent;
+        }
+        _worldSpawn = (Worldspawn)parent;
+    }
+
 
     /// <summary>
     /// Attaches a new component to this entity
@@ -116,10 +158,10 @@ public abstract class Entity : IThinker, IUpdates
 
     void IThinker.OnTransformUpdate()
     {
-        if(IsStatic) return;
+        if (IsStatic) return;
         foreach (var component in components)
             component.Thinker.OnTransformUpdate();
-        foreach(var child in children)
+        foreach (var child in children)
             child.Entity.Thinker.OnTransformUpdate();
     }
 
@@ -168,10 +210,10 @@ public abstract class Entity : IThinker, IUpdates
         {
             e.Entity.Destroy();
         }
-        if (Transform.Parent != null)
+        if (Transform._parent != null)
         {
-            if (!Transform.Parent.Entity.IsDestroyed)
-                Transform.Parent.Entity.children.Remove(Transform);
+            if (!Transform._parent.Entity.IsDestroyed)
+                Transform._parent.Entity.children.Remove(Transform);
         }
     }
     public virtual void OnDestroyed() { }

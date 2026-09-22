@@ -11,7 +11,7 @@ public static class FrustumCulling
 {
     static Vector3 _chunkHalfExtents; //TODO: investigate static's impacting on other scenes
 
-    public static QuadTreeNode ConstructForTerrain(Worldspawn worldSpawn)
+    public static QuadTreeNode ConstructForTerrain(Terrain worldSpawn)
     {
         int numChunks = worldSpawn.TerrainEntities.Count;
 
@@ -24,7 +24,7 @@ public static class FrustumCulling
         return ConstructForTerrain(worldSpawn, rootVolume, depth);
     }
 
-    private static QuadTreeNode ConstructForTerrain(Worldspawn worldSpawn, Volume_AABB volume, int depth)
+    private static QuadTreeNode ConstructForTerrain(Terrain worldSpawn, Volume_AABB volume, int depth)
     {
         if (depth <= 0)
         {

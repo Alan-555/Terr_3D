@@ -37,7 +37,7 @@ public class SceneGlobals
 
     public IEnvironmentProvider Environment => Get<IEnvironmentProvider>();
 
-    public Worldspawn Worldspawn => Get<IWorldspawnProvider>().Worldspawn;
+    public Terrain Worldspawn => Get<IWorldspawnProvider>().Worldspawn;
     public Camera CurrentCamera {get=> Get<IWorldspawnProvider>().CurrentCamera; set=> Get<IWorldspawnProvider>().CurrentCamera = value; }
     public IPlayerProvider Player => Get<IPlayerProvider>();
 
@@ -52,7 +52,7 @@ public interface IProvider
 
 public interface IWorldspawnProvider : IProvider
 {
-    Worldspawn Worldspawn { get; }
+    Terrain Worldspawn { get; }
     
     Camera CurrentCamera {get; set;}
 }

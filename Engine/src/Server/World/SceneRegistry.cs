@@ -12,11 +12,6 @@ namespace Terr3D.Server.World;
 public class SceneRegistry
 {
     /// <summary>
-    /// All registered entities
-    /// </summary>
-    public readonly List<Entity> Entities = [];
-
-    /// <summary>
     /// All components and entities that need to be updated every frame
     /// </summary>
     public readonly List<IUpdates> UpdatableObjects = [];
@@ -63,45 +58,6 @@ public class SceneRegistry
     public readonly List<Renderer> UIRenderers = [];
 
     public readonly List<ParticleSystem> ParticleSystems = [];
-
-
-    public void RegisterEntity(Entity entity)
-    {
-        if (Entities.Contains(entity))
-        {
-            Diagnostics.Warn($"Registering existing entity {entity}");
-            return;
-        }
-
-        Entities.Add(entity);
-
-        if (entity is IUpdates updatable)
-        {
-            if (_isUpdating) _pendingRegistrations.Add(updatable);
-            else UpdatableObjects.Add(updatable);
-        }
-
-        // Components added before registration need to be registered too
-        foreach (var component in entity.components)
-        {
-            RegisterComponent(component);
-        }
-    }
-
-    public void UnregisterEntity(Entity entity)
-    {
-        Entities.Remove(entity);
-        if (entity is IUpdates updatable)
-        {
-            if (_isUpdating) _pendingUnregistrations.Add(updatable);
-            else UpdatableObjects.Remove(updatable);
-        }
-
-        foreach (var component in entity.components)
-        {
-            UnregisterComponent(component);
-        }
-    }
 
     public void RegisterComponent(Component component)
     {

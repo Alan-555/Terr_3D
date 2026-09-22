@@ -8,13 +8,27 @@ using Terr3D.Utils;
 
 namespace Terr3D.Server.World;
 
-public class Scene
+public abstract class Scene
 {
-    public static Vector3 PylonPos = new(90, 0, 10);
+    public Worldspawn Worldspawn;
     public SceneRegistry SceneRegistry { get; private set; } = new();
     public SceneGlobals Globals { get; private set; } = new();
 
     public SpacePartitioner Partitioner { get; private set; }
+
+    public Scene()
+    {
+        
+        Worldspawn = new(this);
+        new Player(this, "Player");
+        
+        SpawnStaticEntities();
+        Partitioner = new(null);
+        SpawnDynamicEntities();
+    }
+    
+    public abstract void SpawnStaticEntities();
+    public abstract void SpawnDynamicEntities();
 
     /// <summary>
     /// Initialises the world
@@ -22,17 +36,13 @@ public class Scene
     public void InitWorld()
     {
         //Spawn player
-        new Player(this, "Player");
 
         Diagnostics.Info("Initialising world...");
-        Worldspawn worldSpawn = new(this, "worldspawn", "res/textures/skala.png");
+        Terrain worldSpawn = new(this, "worldspawn", "res/textures/skala.png");
 
-        //Prepare the space partitioner
-        Diagnostics.Info("Generating partitioning data...");
-        Partitioner = new(worldSpawn);
+        
 
-        //Spawn canvas
-        new Canvas(this, "Canvas");
+
 
 
         Globals.CurrentCamera = Globals.Player.LocalPlayer.PlayerCam;
