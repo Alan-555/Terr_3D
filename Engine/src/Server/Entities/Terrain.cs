@@ -63,16 +63,6 @@ public class Terrain : Entity
         }
     }
 
-
-
-
-    public override void OnUpdate(float dt)
-    {
-        //rotate the sun
-        
-
-    }
-
     /// <summary>
     /// Returns the TerrainEntity at the specified world space coordinates
     /// </summary>

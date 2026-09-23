@@ -21,9 +21,10 @@ public abstract class Scene
         Worldspawn = new(this);
         
         //Spawn canvas
-        new Canvas("Canvas", Worldspawn);
+        
+        Entity.Instantiate(()=> new Canvas("Canvas", Worldspawn));
 
-        new Player("Player", Worldspawn);
+        Entity.Instantiate(()=> new Player("Player", Worldspawn));
         
         SpawnStaticEntities();
         Partitioner = new(null);
@@ -80,19 +81,14 @@ public abstract class Scene
     /// <param name="dt">The deltatime</param>
     public void UpdateScene(float dt)
     {
-        SceneRegistry.BeginUpdate();
-
         //iterate all updatable objects
-        foreach (var updatable in SceneRegistry.UpdatableObjects)
+        foreach (var updatable in SceneRegistry.BehaviourComponents)
         {
             //check if the subject is enabled
-            if (updatable is Entity { IsEnabled: false } or Entity { IsDestroyed: true }) continue;
-            if (updatable is Component { IsEnabled: false } or Component { IsDestroyed: true }) continue;
+            if (updatable.IsDestroyed || !updatable.IsEnabled) continue;
 
-            updatable.OnUpdate(dt);
+            updatable.Update(dt);
         }
-
-        SceneRegistry.EndUpdate();
     }
 
 

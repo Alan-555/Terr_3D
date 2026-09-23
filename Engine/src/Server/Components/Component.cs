@@ -6,9 +6,8 @@ namespace Terr3D.Server.Components;
 /// <summary>
 /// A base class for all components. Components provide general behaviour that are used across multiple Entities
 /// </summary>
-public abstract class Component : IThinker
+public abstract class Component
 {
-    public IThinker Thinker => this;
 
     /// <summary>
     /// The entity this component is bound to
@@ -25,7 +24,8 @@ public abstract class Component : IThinker
     /// </summary>
     public Entities.Transform Transform => Entity.Transform;
 
-    public bool HasPriorityUpdate = false;
+    public World.Scene Onstage => Entity.Onstage;
+
 
     /// <summary>
     /// Is this component enabled?
@@ -55,7 +55,6 @@ public abstract class Component : IThinker
         Entity = entity;
     }
 
-//TODO: unify destroy and enable functions into the thinker
     public void Destroy()
     {
         IsDestroyed = true;
@@ -64,28 +63,31 @@ public abstract class Component : IThinker
     }
 
     /// <summary>
-    /// <inheritdoc/>
+    /// Called once the component sits on an Entity and all dependencies are resolved
     /// </summary>
     public virtual void OnInitialise() { }
 
     /// <summary>
-    /// <inheritdoc/>
+    /// Called when the component has been enabled (and had been previously disabled)
     /// </summary>
     public virtual void OnEnable() { }
 
     /// <summary>
-    /// <inheritdoc/>
+    /// Called when the component has been disabled
     /// </summary>
     public virtual void OnDisable() { }
 
     /// <summary>
-    /// <inheritdoc/>
+    /// Called once the component is destroyed
     /// </summary>
     public virtual void OnDestroyed() { }
 
     /// <summary>
-    /// <inheritdoc/>
+    /// Called when the entity this component is attached to moves in world-space
     /// </summary>
     public virtual void OnTransformUpdate() { }
 
 }
+
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class DependencyAttribute : Attribute { }

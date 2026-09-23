@@ -11,7 +11,7 @@ namespace Terr3D.Server.Components;
 /// <summary>
 /// This component provides physics logic for entities. They will be effected by gravity and stay above the terrain
 /// </summary>
-public class Physics : Component, IUpdates
+public class Physics : BehaviourComponent
 {
 
     public static readonly Vector3 Gravity = new(0, -9.81f, 0);
@@ -58,7 +58,7 @@ public class Physics : Component, IUpdates
         _velocity += pushVector;
     }
 
-    public void OnUpdate(float dt)
+    public override void Update(float dt)
     {
         if(Program.DEBUG_FLAG)
             DebugControls(dt);

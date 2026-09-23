@@ -8,7 +8,7 @@ namespace Terr3D.Server.Components;
 /// <summary>
 /// A debug component that renders a wireframe box tracking a specific target.
 /// </summary>
-public class WireframeBoxRenderer : Renderer, IUpdates
+public class WireframeBoxRenderer : Renderer
 {
     public static Vector3 ColourCollider = new(0, 1, 0);
     public static Vector3 ColourCloudPoison = new(1, 0, 0);
@@ -25,25 +25,6 @@ public class WireframeBoxRenderer : Renderer, IUpdates
         _wireframeShape = wireframe;
         SetEnabled(false);
 
-    }
-
-    public void OnUpdate(float dt)
-    {
-
-        if (Entity.IsStatic) return;
-
-        if (_wireframeShape == null)
-        {
-            foreach (var c in Entity.components)
-            {
-                if (c is ISupportsWireframe w)
-                {
-                    _wireframeShape = w;
-                }
-            }
-            Destroy();
-            return;
-        }
     }
 }
 

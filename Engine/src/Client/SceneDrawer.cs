@@ -66,7 +66,7 @@ public class SceneDrawer
         var viewProjMatrixForCulling = viewMatrix * projectionMatrix;
 
 
-        if (Player.debugCull)
+        if (PlayerController.debugCull)
             viewProjMatrixForCulling = Globals.Player.PlayerCam.ViewMatrix * Globals.Player.PlayerCam.ProjectionMatrix;
 
         //render to the light depth buffer and obtain the light matrix 

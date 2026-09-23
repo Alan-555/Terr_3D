@@ -71,7 +71,7 @@ public static class FrustumCulling
             volume.HalfExtents.Y = halfHeight;
 
             //return the leaf
-            return new(volume, [chunk.components.OfType<Renderer>().First(), .. models], [.. colliders]);
+            return new(volume, [chunk.Components.OfType<Renderer>().First(), .. models], [.. colliders]);
             //throw new Exception($"No chunk found for volume {volume}");
         }
 

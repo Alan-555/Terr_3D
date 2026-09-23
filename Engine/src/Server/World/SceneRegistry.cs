@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
 using Terr3D.Server.Shared;
@@ -12,30 +13,11 @@ namespace Terr3D.Server.World;
 public class SceneRegistry
 {
     /// <summary>
-    /// All components and entities that need to be updated every frame
+    /// All components that need to be updated every frame
     /// </summary>
-    public readonly List<IUpdates> UpdatableObjects = [];
+    private readonly List<BehaviourComponent> _updatableComponents = [];
 
-    private readonly List<IUpdates> _pendingRegistrations = [];
-    private readonly List<IUpdates> _pendingUnregistrations = [];
-    private bool _isUpdating = false;
-
-    public void BeginUpdate() => _isUpdating = true;
-    public void EndUpdate()
-    {
-        _isUpdating = false;
-        foreach (var item in _pendingRegistrations)
-        {
-            if (!UpdatableObjects.Contains(item))
-                UpdatableObjects.Add(item);
-        }
-        foreach (var item in _pendingUnregistrations)
-        {
-            UpdatableObjects.Remove(item);
-        }
-        _pendingRegistrations.Clear();
-        _pendingUnregistrations.Clear();
-    }
+    public ReadOnlyCollection<BehaviourComponent> BehaviourComponents => _updatableComponents.AsReadOnly();
 
     /// <summary>
     /// All registered components indexed by their type for fast querying
@@ -72,10 +54,9 @@ public class SceneRegistry
         value.Add(component);
 
         // Add to updatable list if it implements IUpdates
-        if (component is IUpdates updatable)
+        if (component is BehaviourComponent updatable)
         {
-            if (_isUpdating) _pendingRegistrations.Add(updatable);
-            else UpdatableObjects.Add(updatable);
+            _updatableComponents.Add(updatable);
         }
 
         if (component is ParticleSystem particleSystem)
@@ -112,10 +93,9 @@ public class SceneRegistry
             list.Remove(component);
         }
 
-        if (component is IUpdates updatable)
+        if (component is BehaviourComponent updatable)
         {
-            if (_isUpdating) _pendingUnregistrations.Add(updatable);
-            else UpdatableObjects.Remove(updatable);
+            _updatableComponents.Remove(updatable);
         }
 
         if (component is ParticleSystem particleSystem)

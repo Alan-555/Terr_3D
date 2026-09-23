@@ -5,13 +5,14 @@ using Terr3D.Client;
 using Terr3D.Server.Components;
 using Terr3D.Server.World;
 
-namespace Terr3D.Server.Entities;
+namespace Terr3D.Server.Components;
 
 /// <summary>
 /// A camera with fly controls
 /// </summary>
-public class FreeCamera : Entity
+public class FreeCameraController : BehaviourComponent
 {
+    [Dependency]
     public Camera camera;
 
     float mouseSensitivity = 0.015f;
@@ -19,14 +20,9 @@ public class FreeCamera : Entity
     float moveSpeed = 3;
     float sprintSpeedModifier = 10;
 
-    public FreeCamera(string name, Entity parent) : base(name, parent, false)
-    {
-        camera = AddComponent<Camera>();
-    }
 
-    public override void OnUpdate(float dt)
+    public override void Update(float dt)
     {
-        base.OnUpdate(dt);
         Move(dt);
         Turn(dt);
 

@@ -71,7 +71,7 @@ public interface IPlayerProvider : IProvider
     /// </summary>
     public Camera PlayerCam { get;}
 
-    public Player LocalPlayer { get;}
+    public PlayerController LocalPlayer { get;}
 }
 
 public interface ICanvasProvider : IProvider
