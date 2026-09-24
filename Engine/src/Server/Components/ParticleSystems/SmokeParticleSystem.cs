@@ -72,7 +72,7 @@ public class SmokeParticleSystem : ParticleSystem
 
     bool _wasDisabled = false;
 
-    public override void OnUpdate(float dt)
+    public override void Update(float dt)
     {
         if(!doEmit) _wasDisabled = true;
         if(doEmit && _wasDisabled)

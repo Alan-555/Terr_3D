@@ -107,13 +107,20 @@ public abstract class Entity
     public static T Instantiate<T>(Func<T> factory) where T : Entity
     {
         T entity = factory();
-        entity.InitialiseSubtree();
+        EntityLifecycle.InitialiseSubtree(entity);
         return entity;
     }
 
     private static readonly Dictionary<Type, FieldInfo[]> _dependencyFieldCache = new();
 
-    private void ResolveDependencies(Component component)
+    private static void CollectComponents(Entity entity, List<Component> into)
+    {
+        into.AddRange(entity.Components);
+        foreach (Entity child in entity.Children)
+            CollectComponents(child, into);
+    }
+
+    internal static void ResolveDependencies(Entity subtreeRoot, Component component)
     {
         Type type = component.GetType();
 
@@ -126,34 +133,28 @@ public abstract class Entity
             _dependencyFieldCache[type] = fields;
         }
 
+        if (fields.Length == 0) return;
+
+        List<Component> pool = new();
+        CollectComponents(subtreeRoot, pool);
+
         foreach (FieldInfo field in fields)
         {
-            List<Component> matches = _components
+            List<Component> matches = pool
                 .Where(c => c != component && field.FieldType.IsInstanceOfType(c))
                 .ToList();
 
             if (matches.Count == 0)
                 throw new InvalidOperationException(
-                    $"{type.Name}.{field.Name}: no component of type {field.FieldType.Name} found on entity.");
+                    $"{type.Name}.{field.Name}: no component of type {field.FieldType.Name} found in subtree.");
 
             if (matches.Count > 1)
                 throw new InvalidOperationException(
-                    $"{type.Name}.{field.Name}: multiple candidates for {field.FieldType.Name} found on entity " +
+                    $"{type.Name}.{field.Name}: multiple candidates for {field.FieldType.Name} " +
                     $"({string.Join(", ", matches.Select(m => m.GetType().Name))}). Disambiguate with a subtype.");
 
             field.SetValue(component, matches[0]);
         }
-    }
-
-    private void InitialiseSubtree()
-    {
-        foreach (Component component in _components)
-            component.OnInitialise();
-
-        OnInitialise();
-
-        foreach (Entity child in Children)
-            child.InitialiseSubtree();
     }
 
     public void SetParent(Entity? parent)
@@ -181,6 +182,23 @@ public abstract class Entity
         _currentScene = ((Worldspawn)parent).Scene;
     }
 
+    public Entity WithComponent<T>() where T : Component, new()
+    {
+        AddComponent<T>();
+        return this;
+    }
+    public Entity WithComponent(Component component)
+    {
+        AddComponent(component);
+        return this;
+    }
+
+    public E_T WithComponent<E_T,T>() where T : Component, new() where E_T : Entity
+    {
+        AddComponent<T>();
+        return (E_T)this;
+    }
+
 
     /// <summary>
     /// Attaches a new component to this entity
@@ -197,7 +215,6 @@ public abstract class Entity
         component.Bind(this);
         _components.Add(component);
         Onstage.SceneRegistry.RegisterComponent(component);
-        ResolveDependencies(component);
         return component;
     }
 
@@ -276,4 +293,33 @@ public abstract class Entity
     }
 
     public virtual void OnDestroyed() { }
+}
+
+public static class EntityLifecycle
+{
+    public static void InitialiseSubtree(Entity root)
+    {
+        ResolveSubtree(root, root);
+        InitialiseAll(root);
+    }
+
+    private static void ResolveSubtree(Entity root, Entity node)
+    {
+        foreach (Component component in node.Components)
+            Entity.ResolveDependencies(root, component);
+
+        foreach (Entity child in node.Children)
+            ResolveSubtree(root, child);
+    }
+
+    private static void InitialiseAll(Entity node)
+    {
+        foreach (Component component in node.Components)
+            component.OnInitialise();
+
+        node.OnInitialise();
+
+        foreach (Entity child in node.Children)
+            InitialiseAll(child);
+    }
 }

@@ -7,7 +7,7 @@ using Terr3D.Utils;
 
 namespace Terr3D.Server.Components;
 
-public abstract class ParticleSystem : Component, IUpdates
+public abstract class ParticleSystem : BehaviourComponent
 {
     protected ParticleInstanceData[] _instances;
     private int _instanceVBO;
@@ -120,8 +120,6 @@ public abstract class ParticleSystem : Component, IUpdates
         GL.DeleteBuffer(_instanceVBO);
         GL.DeleteVertexArray(_vao);
     }
-
-    public abstract void OnUpdate(float dt);
 }
 
 

@@ -58,7 +58,7 @@ public class RainParticleSystem : ParticleSystem
         }
     }
 
-    public override void OnUpdate(float dt)
+    public override void Update(float dt)
     {
         var max = Entity.Transform.Position + _extents;
         var min = Entity.Transform.Position - _extents;

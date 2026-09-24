@@ -13,6 +13,7 @@ public static class FrustumCulling
 
     public static QuadTreeNode ConstructForTerrain(Terrain worldSpawn)
     {
+        return new(new());
         int numChunks = worldSpawn.TerrainEntities.Count;
 
         _chunkHalfExtents = new Vector3(worldSpawn.TerrainSize / MathF.Sqrt(numChunks)) * 0.5f;

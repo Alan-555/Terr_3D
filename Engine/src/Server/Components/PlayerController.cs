@@ -18,7 +18,6 @@ public class PlayerController : BehaviourComponent
     
     [Dependency]
     public Camera playerCamera;
-    [Dependency]
     public FreeCameraController freeCamera;
 
     [Dependency]

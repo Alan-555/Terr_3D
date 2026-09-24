@@ -8,7 +8,7 @@ namespace Terr3D.Server.Entities;
 /// </summary>
 public class EmptyEntity : Entity
 {
-    public EmptyEntity(string name, Entity parent, bool isStatic) : base(name, parent, isStatic)
+    public EmptyEntity(string name, Entity parent, bool isStatic = false) : base(name, parent, isStatic)
     {
     }
 }

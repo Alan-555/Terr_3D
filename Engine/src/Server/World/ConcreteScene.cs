@@ -10,7 +10,7 @@ public class ConcreteScene : Scene
         //Spawn player
 
         Diagnostics.Info("Initialising world...");
-        Terrain worldSpawn = new("Terrain", Worldspawn, 64f, 100);
+        //Terrain worldSpawn = new("Terrain", Worldspawn, 64f, 100);
         Globals.CurrentCamera = Globals.Player.LocalPlayer.PlayerCam;
         Diagnostics.Info("Scene init done");
     }

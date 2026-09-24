@@ -1,13 +1,13 @@
 using OpenTK.Mathematics;
 using Terr3D.Client;
 using Terr3D.Client.Resources;
-using Terr3D.Server.Components;
+using Terr3D.Server.Entities;
 using Terr3D.Server.Shared;
 using Terr3D.Server.World;
 
-namespace Terr3D.Server.Entities;
+namespace Terr3D.Server.Components;
 
-public class Environment : Entity, IUpdates, IEnvironmentProvider
+public class Environment : BehaviourComponent, IEnvironmentProvider
 {
 
     const float defaultFog = 0.0125f;
@@ -38,15 +38,13 @@ public class Environment : Entity, IUpdates, IEnvironmentProvider
         lighting_Intensity = 0
     };
 
-
-    public Environment(string name, Entity parent) : base(name, parent, true)
+    public override void OnInitialise()
     {
-        Register();
         //Add a sky quad
-        _sky = AddComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Sky], ResourceManager.Meshes[ResourceIndex.Meshes.SkyQuad], RendererClass.RENDER_IGNORE));
+        _sky = Entity.AddComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Sky], ResourceManager.Meshes[ResourceIndex.Meshes.SkyQuad], RendererClass.RENDER_IGNORE));
 
         //Add the sun
-        _sun = new EmptyEntity("Sun", Onstage.Worldspawn, false);
+        _sun = Entity.InstantiateEmpty("Sun", Onstage.Worldspawn, false);
     }
 
     public void Register()
@@ -78,9 +76,8 @@ public class Environment : Entity, IUpdates, IEnvironmentProvider
         AudioManager.PlayOneShot(ResourceManager.Audio[strikeKey], 0.5f);*/
     }
 
-    public override void OnUpdate(float dt)
+    public override void Update(float dt)
     {
-        base.OnUpdate(dt);
         UpdateStorm(dt);
         if (_lighting_age < _maxAge)
         {
