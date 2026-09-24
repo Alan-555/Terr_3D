@@ -5,7 +5,7 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Entities;
-using Terr3D.Server.World;
+using Terr3D.Server.Engine;
 using Terr3D.Utils;
 
 namespace Terr3D.Client;

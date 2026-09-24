@@ -18,7 +18,7 @@ public class BoxCollider(Vector3 halfExtents, Vector3 centerOffset, bool isStati
     public Vector3 Center => Transform.Position + Vector3.Transform(CenterOffset, Transform.Rotation);
 
 
-    public override Volume_AABB GetAABB()
+    public override Bounds GetBounds()
     {
         // Get the global axes of the box
         Vector3 axisX = Transform.Right;
@@ -32,40 +32,40 @@ public class BoxCollider(Vector3 halfExtents, Vector3 centerOffset, bool isStati
             MathF.Abs(axisX.Z * HalfExtents.X) + MathF.Abs(axisY.Z * HalfExtents.Y) + MathF.Abs(axisZ.Z * HalfExtents.Z)
         );
 
-        return new Volume_AABB(Center, worldHalfExtents);
+        return new Bounds(Center, worldHalfExtents);
     }
 
 
     public override bool Intersects(BoxCollider other)
     {
         //First check AABB
-        if (!GetAABB().Intersects(other.GetAABB()))
+        if (!GetBounds().Intersects(other.GetBounds()))
             return false;
 
         //Now the complex SAT check
         return CheckSAT(other);
     }
 
-    public override bool Intersects(Volume_AABB aabb)
+    public override bool Intersects(Bounds aabb)
     {
         //First check AABB
-        if (!GetAABB().Intersects(aabb))
+        if (!GetBounds().Intersects(aabb))
             return false;
 
         //Now the complex SAT check
         return CheckSAT(aabb);
     }
 
-    public override bool IntersectsInfHeight(Volume_AABB aabb)
+    public override bool IntersectsInfHeight(Bounds aabb)
     {
         //augment the aabb with infinite height
         aabb = new(aabb.Position, aabb.HalfExtents with {Y = float.PositiveInfinity});
         return Intersects(aabb);
     }
 
-    public override CollisionData Collide(Volume_AABB aabb)
+    public override CollisionData Collide(Bounds aabb)
     {
-        if (!GetAABB().Intersects(aabb))
+        if (!GetBounds().Intersects(aabb))
             return new CollisionData { Intersects = false };
 
 
@@ -83,7 +83,7 @@ public class BoxCollider(Vector3 halfExtents, Vector3 centerOffset, bool isStati
         Vector3 localDir = Vector3.Transform(ray.Direction, invRot);
 
         Ray localRay = new(localOrigin, localDir);
-        Volume_AABB localAABB = new(Vector3.Zero, HalfExtents);
+        Bounds localAABB = new(Vector3.Zero, HalfExtents);
 
         //if the local ray intersects
         if (localAABB.Intersects(localRay, out float distance))
@@ -186,7 +186,7 @@ public class BoxCollider(Vector3 halfExtents, Vector3 centerOffset, bool isStati
         return PerformSAT(other.Center, axesA, axesB, HalfExtents, other.HalfExtents);
     }
 
-    private bool CheckSAT(Volume_AABB aabb)
+    private bool CheckSAT(Bounds aabb)
     {
         Vector3[] axesA = [Transform.Right, Transform.Up, -Transform.Forward];
         Vector3[] axesB = [Vector3.UnitX, Vector3.UnitY, Vector3.UnitZ];

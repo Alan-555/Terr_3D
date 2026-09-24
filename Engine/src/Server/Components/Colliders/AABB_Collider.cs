@@ -9,16 +9,16 @@ namespace Terr3D.Server.Components;
 /// </summary>
 public class AABB_Collider(Vector3 halfExtents, Vector3 centerOffset, bool isStatic = false) : Collider(isStatic), ISupportsWireframe
 {
-    private readonly Volume_AABB _baseAABB = new(centerOffset, halfExtents);
+    private readonly Bounds _baseAABB = new(centerOffset, halfExtents);
 
-    public Volume_AABB AABB => _baseAABB with { Position = _baseAABB.Position + Transform.Position };
+    public Bounds AABB => _baseAABB with { Position = _baseAABB.Position + Transform.Position };
 
-    public override CollisionData Collide(Volume_AABB aabb)
+    public override CollisionData Collide(Bounds aabb)
     {
         throw new NotImplementedException();
     }
 
-    public override Volume_AABB GetAABB()
+    public override Bounds GetBounds()
     {
         return AABB;
     }
@@ -28,12 +28,12 @@ public class AABB_Collider(Vector3 halfExtents, Vector3 centerOffset, bool isSta
         return other.Intersects(AABB);
     }
 
-    public override bool Intersects(Volume_AABB aabb)
+    public override bool Intersects(Bounds aabb)
     {
         return aabb.Intersects(AABB);
     }
 
-    public override bool IntersectsInfHeight(Volume_AABB aabb)
+    public override bool IntersectsInfHeight(Bounds aabb)
     {
         return aabb.IntersectsInfHeight(AABB);
     }

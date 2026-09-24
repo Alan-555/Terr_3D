@@ -5,7 +5,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Terr3D.Client;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
-using Terr3D.Server.World;
+using Terr3D.Server.Engine;
 using Terr3D.Server.WorldGen;
 using Terr3D.Utils;
 using YamlDotNet.Core.Events;
@@ -18,15 +18,15 @@ namespace Terr3D.Server.Entities;
 /// </summary>
 public class Terrain : Entity
 {
-    public float TerrainSize { get; private set; }
+
+
+    public const int QuadsPerChunk = 26; //how may quads (per axis) do we use? This is arbitrary and good ballance has to be made. More chunks = more work for the CPU to cull them, less chunks = CPU can't cull so GPU will have to render a lot of triangles
+    public const int QuadsPerMeter = 2; //from the assignment. Sampling each 0.5meters means we have two quads per meter
+
+    public float TerrainSize { get; private init; }
+    public int NumChunks {get; private init;}
 
     public Vector3 Pivot => new(-TerrainSize / 2f, 0, -TerrainSize / 2f);
-
-    List<TerrainEntity> terrainEntities = [];
-    public List<TerrainEntity> TerrainEntities => terrainEntities;
-
-    List<ModelEntity> modelEntities = [];
-    public List<ModelEntity> ModelEntities => modelEntities;
 
     HeighMap _heightMap;
 
@@ -37,6 +37,10 @@ public class Terrain : Entity
         TerrainSize = worldSpaceSize;
         _heightMap = new(heightMapSize, heightMapSize);
         Diagnostics.Info("Begin terrain generation...");
+        
+        //calculate the number of total chunks (per axis)
+        var targetNumChunks = (int)Math.Ceiling(TerrainSize * QuadsPerMeter / QuadsPerChunk);
+        NumChunks = (int)MathF.Sqrt(WorldGeneratorHelpers.FindPowerOfFour(targetNumChunks * targetNumChunks));
         GenerateChunks();
 
     }
@@ -55,31 +59,15 @@ public class Terrain : Entity
         //spawn a terrain entity for each chunk
         foreach (var (mesh, pos, heightData) in chunks)
         {
-            var ent = new TerrainEntity($"TerrainChunk{pos}", this, heightData);
+            var ent =
+            new EmptyEntity($"TerrainChunk{pos}", this, true)
+            .WithComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Shaded], mesh, RendererClass.RENDERER_STATIC)
+            {
+                material = mat
+            });
             ent.Transform.Position = new(pos.X, 0, pos.Y);
-            var r = ent.AddComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Shaded], mesh, RendererClass.RENDERER_STATIC));
-            r.material = mat;
-            terrainEntities.Add(ent);
         }
     }
-
-    /// <summary>
-    /// Returns the TerrainEntity at the specified world space coordinates
-    /// </summary>
-    /// <param name="x">The x coordinate</param>
-    /// <param name="z">The z coordinate</param>
-    /// <returns>The terrain entity at that pos</returns>
-    public TerrainEntity GetTerrainEntityAt(float x, float z)
-    {
-        int sqr = (int)MathF.Sqrt(TerrainEntities.Count);
-        float chunkSize = TerrainSize / sqr;
-
-        int e_x = (int)((x + TerrainSize / 2f) / chunkSize);
-        int e_z = (int)((z + TerrainSize / 2f) / chunkSize);
-
-        return TerrainEntities[e_x * sqr + e_z];
-    }
-
 
     /// <summary>
     /// Converts a Vector3 world position to normalised map space
@@ -143,8 +131,8 @@ public class Terrain : Entity
 
 class HeighMap
 {
-    public int SizeX {get; private init;}
-    public int SizeZ {get; private init;}
+    public int SizeX { get; private init; }
+    public int SizeZ { get; private init; }
     private readonly float[] map;
 
     public HeighMap(int sizeX, int sizeZ)
@@ -154,7 +142,9 @@ class HeighMap
         map = new float[sizeX * sizeZ];
     }
 
-    public float GetActualHeightAt(int x, int z)=> map[x + z * SizeX];
+    private Vector2 FromNormalised(float x, float z) => new(float.Clamp(x, 0f, 1f) * (SizeX - 1), float.Clamp(z, 0f, 1f) * (SizeZ - 1));
+
+    public float GetActualHeightAt(int x, int z) => map[x + z * SizeX];
 
     public float Sample(Vector3 pos) => Sample(pos.X, pos.Z);
     public float Sample(Vector2 pos) => Sample(pos.X, pos.Y);
@@ -165,11 +155,12 @@ class HeighMap
     /// <returns>The interpolated height at that point</returns>
     public float Sample(float x, float z)
     {
+        FromNormalised(x, z).Deconstruct(out x, out z);
         int x1 = (int)Math.Floor(x);
         int z1 = (int)Math.Floor(z);
 
-        int x2 = Math.Min(x1 + 1, SizeX);
-        int z2 = Math.Min(z1 + 1, SizeZ);
+        int x2 = Math.Min(x1 + 1, SizeX - 1);
+        int z2 = Math.Min(z1 + 1, SizeZ - 1);
 
         float fx = x - x1;
         float fy = z - z1;

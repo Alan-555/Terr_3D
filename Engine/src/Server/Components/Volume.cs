@@ -7,6 +7,6 @@ namespace Terr3D.Server.Components;
 
 public class VolumeComponent : Component
 {
-    public Volume_AABB Volume {get; private set;}
+    public Bounds Volume {get; private set;}
 
 }

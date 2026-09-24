@@ -4,7 +4,7 @@ using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
 using Terr3D.Server.Shared;
-using Terr3D.Server.World;
+using Terr3D.Server.Engine;
 using Terr3D.Utils;
 
 namespace Terr3D.Client;
@@ -20,11 +20,6 @@ public class SceneDrawer
 
     const float SunOrthoExtension = 25;
 
-    public Scene scene;
-
-    SceneGlobals Globals { get;}
-    SceneRegistry SceneRegistry { get;}
-
     readonly DepthFrameBuffer depthBuffer = new(DepthBufferRes);
 
     Texture _depthBufferTexture;
@@ -36,11 +31,8 @@ public class SceneDrawer
 
     ShaderProgram _fontShader;
 
-    public SceneDrawer(Scene scene)
+    public SceneDrawer()
     {
-        this.scene = scene;
-        Globals = scene.Globals;
-        SceneRegistry = scene.SceneRegistry;    
         _depthBufferTexture = new Texture(depthBuffer.depthMap);
         _depthShader = ResourceManager.Shaders[ResourceIndex.Shaders.Depth];
         _fontShader = ResourceManager.Shaders[ResourceIndex.Shaders.Font];
@@ -55,9 +47,10 @@ public class SceneDrawer
     /// <summary>
     /// Renders the entire scene to the default buffer
     /// </summary>
-    public void RenderScene()
+    public void RenderScene(Scene scene)
     {
-        var cam = Globals.CurrentCamera;
+        var cam = World.ActiveCamera;
+        if(cam == null) return;
 
         //cache matrices
         var viewMatrix = cam.ViewMatrix;
@@ -66,8 +59,8 @@ public class SceneDrawer
         var viewProjMatrixForCulling = viewMatrix * projectionMatrix;
 
 
-        if (PlayerController.debugCull)
-            viewProjMatrixForCulling = Globals.Player.PlayerCam.ViewMatrix * Globals.Player.PlayerCam.ProjectionMatrix;
+        /*if (PlayerController.debugCull)
+            viewProjMatrixForCulling = Globals.Player.PlayerCam.ViewMatrix * Globals.Player.PlayerCam.ProjectionMatrix;*/
 
         //render to the light depth buffer and obtain the light matrix 
         DepthPass(ref viewMatrix, projectionMatrix, out var lightMatrix);
@@ -82,7 +75,7 @@ public class SceneDrawer
         RenderGeometry(ref mat, includePersistent: false);
 
         //render particles
-        foreach (var ps in SceneRegistry.ParticleSystems)
+        foreach (var ps in scene.SceneRegistry.ParticleSystems)
         {
             ps.Render(ref mat.viewMatrix, ref mat.projectionMatrix, cam.Transform.Position);
         }
@@ -201,7 +194,7 @@ public class SceneDrawer
                 !r.IsDestroyed && //mustn't be destroyed
                 (
                     isPersistent || //is either persistent or...
-                    Volume_AABB.ClassifyVisibilityForFrustum(mat.viewProjMatrix, r.DynamicAABB) != Visibility.NONE //... is potentially visible
+                    Bounds.ClassifyVisibilityForFrustum(mat.viewProjMatrix, r.DynamicAABB) != Visibility.NONE //... is potentially visible
                 )
             )
             {

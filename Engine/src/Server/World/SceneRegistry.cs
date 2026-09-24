@@ -4,7 +4,7 @@ using Terr3D.Server.Entities;
 using Terr3D.Server.Shared;
 using Terr3D.Utils;
 
-namespace Terr3D.Server.World;
+namespace Terr3D.Server.Engine;
 
 /// <summary>
 /// Used to register entities and other scene-wide accessible things. 

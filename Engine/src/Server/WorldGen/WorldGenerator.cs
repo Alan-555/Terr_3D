@@ -4,7 +4,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
-using Terr3D.Server.World;
+using Terr3D.Server.Engine;
 using Terr3D.Utils;
 
 namespace Terr3D.Server.WorldGen;
@@ -15,29 +15,25 @@ namespace Terr3D.Server.WorldGen;
 public class WorldGenerator
 {
 
-    public const int QuadsPerChunk = 26; //how may quads (per axis) do we use? This is arbitrary and good ballance has to be made. More chunks = more work for the CPU to cull them, less chunks = CPU can't cull so GPU will have to render a lot of triangles
-    public const int QuadsPerMeter = 2; //from the assignment. Sampling each 0.5meters means we have two quads per meter
 
     /// <summary>
     /// Generates all terrain meshes and packs chunk heights + the world pos into one tuple FIXME: not ideal
     /// </summary>
-    /// <param name="worldSpawn">The worldspawn to generate for</param>
-    public static List<(Mesh, Vector2, Vector2)> GenerateTerrainMesh(Terrain worldSpawn)
+    /// <param name="terrain">The worldspawn to generate for</param>
+    public static List<(Mesh, Vector2, Vector2)> GenerateTerrainMesh(Terrain terrain)
     {
-        //calculate the number of total chunks (per axis)
-        var NumChunks = (int)Math.Ceiling(worldSpawn.TerrainSize * QuadsPerMeter / QuadsPerChunk);
-        NumChunks = (int)MathF.Sqrt(WorldGeneratorHelpers.FindPowerOfFour(NumChunks * NumChunks));
+        
 
         //the step we take
-        float step = worldSpawn.TerrainSize / NumChunks;
+        float step = terrain.TerrainSize / terrain.NumChunks;
 
         //the root offset of the origin, so the world is centred
-        var rootOffset = worldSpawn.Pivot;
+        var rootOffset = terrain.Pivot;
 
         List<(Mesh, Vector2, Vector2)> meshes = [];
-        for (int x = 0; x < NumChunks; x++)
+        for (int x = 0; x < terrain.NumChunks; x++)
         {
-            for (int z = 0; z < NumChunks; z++)
+            for (int z = 0; z < terrain.NumChunks; z++)
             {
                 //the world pos
                 float px = x * step + rootOffset.X;
@@ -45,10 +41,10 @@ public class WorldGenerator
                 float h = 0;//(float)Random.Shared.NextDouble();
 
                 var (terrainMesh, heightData) = WorldGeneratorHelpers.GeneratePlane(
-                    QuadsPerChunk,
+                    Terrain.QuadsPerChunk,
                     step,
-                    (x, z) => worldSpawn.SampleHeight(new Vector2(x, z)) + h,
-                    (x, z) => worldSpawn.GetTerrainNormal((x, 0, z), 0.5f),
+                    (x, z) => terrain.SampleHeight(new Vector2(x, z)) + h,
+                    (x, z) => terrain.GetTerrainNormal((x, 0, z), 0.5f),
                     new(px, 0, pz)
                 );
 

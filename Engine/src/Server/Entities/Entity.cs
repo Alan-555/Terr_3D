@@ -5,7 +5,7 @@ using Terr3D.Client;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
 using Terr3D.Server.Shared;
-using Terr3D.Server.World;
+using Terr3D.Server.Engine;
 using Terr3D.Utils;
 
 namespace Terr3D.Server.Entities;

@@ -5,7 +5,7 @@ using Terr3D.Client;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
 using Terr3D.Server.Modules;
-using Terr3D.Server.World;
+using Terr3D.Server.Engine;
 using Terr3D.Utils;
 
 namespace Terr3D.Server.Entities;
@@ -13,7 +13,7 @@ namespace Terr3D.Server.Entities;
 /// <summary>
 /// The canvas entity provides logic to render text to the screen
 /// </summary>
-public class Canvas : Entity, ICanvasProvider
+public class Canvas : SingletonComponent
 {
     public FontRenderer FontRenderer { get; private set; }
 
@@ -33,7 +33,6 @@ public class Canvas : Entity, ICanvasProvider
         }
     }
 
-    Canvas ICanvasProvider.Canvas => this;
 
     private bool _consoleActive = false;
 
@@ -42,9 +41,8 @@ public class Canvas : Entity, ICanvasProvider
     private bool _isDisplayingOutput = false;
     private readonly DebugConsole _debugConsole;
 
-    public Canvas(string name, Entity parent) : base(name, parent, true)
+    public Canvas()
     {
-        Register();
         FontRenderer = AddComponent<FontRenderer>();
         _debugConsole = new DebugConsole(Onstage);
 
@@ -52,10 +50,6 @@ public class Canvas : Entity, ICanvasProvider
         EngineWindow.Instance.KeyDown += OnKeyDown;
     }
     
-    public void Register()
-    {
-        Onstage.Globals.Register<ICanvasProvider>(this);
-    }
 
     public override void OnDestroyed()
     {

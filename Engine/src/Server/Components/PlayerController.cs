@@ -5,7 +5,7 @@ using Terr3D.Client;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
 using Terr3D.Server.Shared;
-using Terr3D.Server.World;
+using Terr3D.Server.Engine;
 using Terr3D.Utils;
 
 namespace Terr3D.Server.Components;
@@ -57,7 +57,7 @@ public class PlayerController : BehaviourComponent
 
 
 
-        if (physics.Collider!.Intersects(new Volume_AABB(Onstage.Globals.CurrentCamera.Transform.Position, new(0.01f, 0.01f, 0.01f))))
+        if (physics.Collider!.Intersects(new Bounds(Onstage.Globals.CurrentCamera.Transform.Position, new(0.01f, 0.01f, 0.01f))))
             worldModelMesh.SetEnabled(false);
         else
             worldModelMesh.SetEnabled(true);

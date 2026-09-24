@@ -24,7 +24,7 @@ public abstract class Component
     /// </summary>
     public Entities.Transform Transform => Entity.Transform;
 
-    public World.Scene Onstage => Entity.Onstage;
+    public Engine.Scene Onstage => Entity.Onstage;
 
 
     /// <summary>

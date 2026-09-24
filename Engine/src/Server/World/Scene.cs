@@ -6,13 +6,12 @@ using Terr3D.Server.Entities;
 using Terr3D.Server.Shared;
 using Terr3D.Utils;
 
-namespace Terr3D.Server.World;
+namespace Terr3D.Server.Engine;
 
 public abstract class Scene
 {
     public Worldspawn Worldspawn {get; private init;}
     public SceneRegistry SceneRegistry { get; private init; } = new();
-    public SceneGlobals Globals { get; private init; } = new();
 
     public SpacePartitioner Partitioner { get; private init; }
 
@@ -25,9 +24,11 @@ public abstract class Scene
         Entity.Instantiate(()=> new Canvas("Canvas", Worldspawn));
 
         Entity.Instantiate(()=> new Player("Player", Worldspawn));
+
+        var terrain = Entity.Instantiate(()=> new Terrain("Terrain", Worldspawn, 50f, 256));
         
         SpawnStaticEntities();
-        Partitioner = new(null);
+        Partitioner = new(this, terrain.TerrainSize / terrain.NumChunks, terrain.NumChunks);
         SpawnDynamicEntities();
     }
     

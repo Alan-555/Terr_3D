@@ -1,7 +1,7 @@
 using Terr3D.Server.Entities;
 using Terr3D.Utils;
 
-namespace Terr3D.Server.World;
+namespace Terr3D.Server.Engine;
 
 public class ConcreteScene : Scene
 {

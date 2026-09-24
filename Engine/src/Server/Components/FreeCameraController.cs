@@ -3,7 +3,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Terr3D.Client;
 using Terr3D.Server.Components;
-using Terr3D.Server.World;
+using Terr3D.Server.Engine;
 
 namespace Terr3D.Server.Components;
 

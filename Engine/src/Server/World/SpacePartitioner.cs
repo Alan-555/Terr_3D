@@ -4,7 +4,7 @@ using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
 using Terr3D.Server.Shared;
 
-namespace Terr3D.Server.World;
+namespace Terr3D.Server.Engine;
 
 
 public class SpacePartitioner
@@ -12,9 +12,9 @@ public class SpacePartitioner
 
     readonly QuadTreeNode _rootNode;
 
-    public SpacePartitioner(Terrain worldSpawn)
+    public SpacePartitioner(Scene scene, float cellSize, int numChunks)
     {
-        _rootNode = FrustumCulling.ConstructForTerrain(worldSpawn);
+        _rootNode = FrustumCulling.Construct(scene, cellSize, numChunks);
     }
 
 
@@ -25,7 +25,7 @@ public class SpacePartitioner
         return renderers;
     }
 
-    public Collider[] QueryCollision(Volume_AABB queryVolume)
+    public Collider[] QueryCollision(Bounds queryVolume)
     {
         List<Collider> colliders = new();
         QueryCollision(queryVolume, colliders, _rootNode);
@@ -111,7 +111,7 @@ public class SpacePartitioner
 
     void QueryFrustum(Matrix4 viewProjMatrix, List<Renderer> renderers, QuadTreeNode node)
     {
-        var classification = Volume_AABB.ClassifyVisibilityForFrustum(viewProjMatrix, node.volume);
+        var classification = Bounds.ClassifyVisibilityForFrustum(viewProjMatrix, node.volume);
         if (classification == Visibility.NONE)
         {
             //do not bother searching further. Cull this entire node
@@ -141,7 +141,7 @@ public class SpacePartitioner
 
     
 
-    public void QueryCollision(Volume_AABB queryVolume, List<Collider> results, QuadTreeNode node)
+    public void QueryCollision(Bounds queryVolume, List<Collider> results, QuadTreeNode node)
     {
         //Skip this sub-tree entirely
         if (!node.volume.Intersects(queryVolume))

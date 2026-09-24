@@ -7,7 +7,7 @@ namespace Terr3D.Server.Shared;
 /// <summary>
 /// Represents a rectangular volume
 /// </summary>
-public struct Volume_AABB
+public struct Bounds
 {
     public Vector3 Position;
     public Vector3 HalfExtents;
@@ -15,13 +15,13 @@ public struct Volume_AABB
     public Vector3 MinPoint => Position - HalfExtents;
     public Vector3 MaxPoint => Position + HalfExtents;
 
-    public Volume_AABB(Vector3 position, Vector3 halfExtents)
+    public Bounds(Vector3 position, Vector3 halfExtents)
     {
         Position = position;
         HalfExtents = halfExtents;
     }
 
-    public static Volume_AABB FromTwoPoints(Vector3 minPoint, Vector3 maxPoint)
+    public static Bounds FromTwoPoints(Vector3 minPoint, Vector3 maxPoint)
     {
         var half = (maxPoint - minPoint) / 2f;
         var position = half + minPoint;
@@ -49,7 +49,7 @@ public struct Volume_AABB
                point.Z <= MaxPoint.Z;
     }
 
-    public bool Intersects(Volume_AABB other)
+    public bool Intersects(Bounds other)
     {
         return Math.Abs(Position.X - other.Position.X) <= (HalfExtents.X + other.HalfExtents.X) &&
                Math.Abs(Position.Y - other.Position.Y) <= (HalfExtents.Y + other.HalfExtents.Y) &&
@@ -78,7 +78,7 @@ public struct Volume_AABB
         return true;
     }
 
-    public bool IntersectsInfHeight(Volume_AABB other)
+    public bool IntersectsInfHeight(Bounds other)
     {
         return Math.Abs(Position.X - other.Position.X) <= (HalfExtents.X + other.HalfExtents.X) &&
                Math.Abs(Position.Z - other.Position.Z) <= (HalfExtents.Z + other.HalfExtents.Z);
@@ -94,7 +94,7 @@ public struct Volume_AABB
     /// <param name="volume">The volume to test visibility for</param>
     /// <returns>The classification</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Visibility ClassifyVisibilityForFrustum(Matrix4 vp, Volume_AABB volume)
+    public static Visibility ClassifyVisibilityForFrustum(Matrix4 vp, Bounds volume)
     {
         //Gribb-Hartmann method
         Vector4[] planes =

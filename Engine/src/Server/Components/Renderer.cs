@@ -10,7 +10,7 @@ namespace Terr3D.Server.Components;
 /// </summary>
 /// <param name="shader"></param>
 /// <param name="mesh"></param>
-public class Renderer(ShaderProgram shader, Mesh mesh, RendererClass rendererClass = RendererClass.RENDERER_DYNAMIC) : Component
+public class Renderer(ShaderProgram shader, Mesh mesh, RendererClass rendererClass = RendererClass.RENDERER_DYNAMIC) : Component, ISpatialBounds
 {
     public ShaderProgram ShaderProgram { get; set; } = shader;
     public Mesh mesh = mesh;
@@ -26,7 +26,7 @@ public class Renderer(ShaderProgram shader, Mesh mesh, RendererClass rendererCla
     /// <summary>
     /// The static bounding box of this entity. Requires to be calculated prior!
     /// </summary>
-    public Volume_AABB staticBoundingBox;
+    private Bounds _staticBoundingBox;
 
 
     /// <summary>
@@ -36,6 +36,7 @@ public class Renderer(ShaderProgram shader, Mesh mesh, RendererClass rendererCla
 
     public override void OnInitialise()
     {
+        ComputeStaticBB();
         if (Entity.IsStatic && this is not WireframeBoxRenderer && rendererClass == RendererClass.RENDERER_DYNAMIC)
             Diagnostics.Warn("Creating a dynamic renderer on a static object!");
         if (!Entity.IsStatic && rendererClass == RendererClass.RENDERER_STATIC)
@@ -88,12 +89,12 @@ public class Renderer(ShaderProgram shader, Mesh mesh, RendererClass rendererCla
                 worldMax.Z = pos.Z;
         }
 
-        staticBoundingBox = Volume_AABB.FromTwoPoints(worldMin, worldMax);
+        _staticBoundingBox = Bounds.FromTwoPoints(worldMin, worldMax);
     }
 
-    private Volume_AABB? _cachedDynamicAABB = null;
+    private Bounds? _cachedDynamicAABB = null;
 
-    public Volume_AABB DynamicAABB
+    public Bounds DynamicAABB
     {
         get
         {
@@ -116,8 +117,14 @@ public class Renderer(ShaderProgram shader, Mesh mesh, RendererClass rendererCla
             Vector3 worldMin = worldCenter - worldExtents;
             Vector3 worldMax = worldCenter + worldExtents;
 
-            return (_cachedDynamicAABB = Volume_AABB.FromTwoPoints(worldMin, worldMax)).Value;
+            return (_cachedDynamicAABB = Bounds.FromTwoPoints(worldMin, worldMax)).Value;
         }
+    }
+
+    public Bounds GetBounds()
+    {
+        if(rendererClass == RendererClass.RENDERER_STATIC) return _staticBoundingBox;
+        return DynamicAABB;
     }
 
     /// <summary>
