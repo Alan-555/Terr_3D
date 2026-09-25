@@ -43,7 +43,7 @@ public class PlayerController : BehaviourComponent
     public override void Update(float dt)
     {
         //Debug player pos
-        Onstage.Globals.Canvas.RenderLabel($"x|y|z {Transform}", 0);
+        //Onstage.Globals.Canvas.RenderLabel($"x|y|z {Transform}", 0);
 
         //General controls
         if (EngineWindow.Instance.KeyboardState.IsKeyPressed(Keys.F1))
@@ -57,10 +57,10 @@ public class PlayerController : BehaviourComponent
 
 
 
-        if (physics.Collider!.Intersects(new Bounds(Onstage.Globals.CurrentCamera.Transform.Position, new(0.01f, 0.01f, 0.01f))))
+        /*if (physics.Collider!.Intersects(new Bounds(Onstage.Globals.CurrentCamera.Transform.Position, new(0.01f, 0.01f, 0.01f))))
             worldModelMesh.SetEnabled(false);
         else
-            worldModelMesh.SetEnabled(true);
+            worldModelMesh.SetEnabled(true);*/
 
 
         //Other controls
@@ -75,7 +75,7 @@ public class PlayerController : BehaviourComponent
 
     public bool Raycast(out RaycastHit hit)
     {
-        if (Onstage.Partitioner.Raycast(new(playerCamera.Transform.Position, playerCamera.Transform.Forward), out hit))
+        if (World.Queries.Raycast(new(playerCamera.Transform.Position, playerCamera.Transform.Forward), out hit))
         {
             return true;
         }
@@ -86,7 +86,7 @@ public class PlayerController : BehaviourComponent
 
     void ToggleFreeCam()
     {
-
+/*
         //Which camera to enable?
         bool toEnableFreeCam = Onstage.Globals.CurrentCamera == playerCamera;
         var newCam = toEnableFreeCam ? freeCamera.camera : playerCamera;
@@ -111,7 +111,7 @@ public class PlayerController : BehaviourComponent
             playerCamera.SetEnabled(true);
             freeCamera.SetEnabled(false);
             isPlayerFrozen = false;
-        }
+        }*/
     }
 
     void Move(float dt)

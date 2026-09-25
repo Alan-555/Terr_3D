@@ -197,7 +197,7 @@ public class Transform
     void SetDirty()
     {
         _cachedLocalMatrix = null;
-        //TODO: transform update
+        Entity.TransformUpdated();
     }
 
     Matrix4 ComputeLocalMatrix()

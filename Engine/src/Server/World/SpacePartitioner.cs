@@ -12,9 +12,21 @@ public class SpacePartitioner
 
     readonly QuadTreeNode _rootNode;
 
-    public SpacePartitioner(Scene scene, float cellSize, int numChunks)
+    public static SpacePartitioner CreateRootTree()
     {
-        _rootNode = FrustumCulling.Construct(scene, cellSize, numChunks);
+        return new SpacePartitioner(
+            new QuadTreeNode()
+        );
+    }
+
+    private SpacePartitioner(QuadTreeNode root)
+    {
+        _rootNode = root;
+    }
+
+    public void AddTree(QuadTreeNode node)
+    {
+        _rootNode.children = [.. _rootNode.children ?? [], node];
     }
 
 
@@ -29,7 +41,7 @@ public class SpacePartitioner
     {
         List<Collider> colliders = new();
         QueryCollision(queryVolume, colliders, _rootNode);
-        return [..colliders];
+        return [.. colliders];
     }
 
     /// <summary>
@@ -139,7 +151,7 @@ public class SpacePartitioner
         }
     }
 
-    
+
 
     public void QueryCollision(Bounds queryVolume, List<Collider> results, QuadTreeNode node)
     {
@@ -181,6 +193,6 @@ public class SpacePartitioner
 
     }
 
-    
+
 }
 

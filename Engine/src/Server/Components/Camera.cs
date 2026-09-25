@@ -66,13 +66,13 @@ public class Camera : Component
         return _cachedViewMatrix.Value;
     }
 
-    public override void OnEnable()
+    protected override void OnEnable()
     {
         base.OnEnable();
         UpdateAspect(EngineWindow.Instance.ClientSize.X, EngineWindow.Instance.ClientSize.Y);
     }
 
-    public override void OnTransformUpdate()
+    protected override void OnTransformUpdate()
     {
         //invalidate projection matrix
         _cachedViewMatrix = null;

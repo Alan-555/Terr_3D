@@ -3,18 +3,20 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Terr3D.Client;
 using Terr3D.Client.Resources;
-using Terr3D.Server.Components;
+using Terr3D.Server.Entities;
 using Terr3D.Server.Modules;
 using Terr3D.Server.Engine;
 using Terr3D.Utils;
+using System.Runtime.CompilerServices;
 
-namespace Terr3D.Server.Entities;
+namespace Terr3D.Server.Components;
 
 /// <summary>
 /// The canvas entity provides logic to render text to the screen
 /// </summary>
-public class Canvas : SingletonComponent
+public class CanvasComp() : SingletonComponent(typeof(FontRenderer)) //TODO: auto discover dependencies
 {
+    [field:Dependency]
     public FontRenderer FontRenderer { get; private set; }
 
     private string ConsoleText
@@ -39,11 +41,11 @@ public class Canvas : SingletonComponent
     private readonly List<string> _history = new();
     private int _historyScrollIndex = -1;
     private bool _isDisplayingOutput = false;
-    private readonly DebugConsole _debugConsole;
+    private DebugConsole _debugConsole;
 
-    public Canvas()
+    protected override void OnInitialise()
     {
-        FontRenderer = AddComponent<FontRenderer>();
+        base.OnInitialise();
         _debugConsole = new DebugConsole(Onstage);
 
         EngineWindow.Instance.TextInput += OnTextInput;
@@ -51,7 +53,7 @@ public class Canvas : SingletonComponent
     }
     
 
-    public override void OnDestroyed()
+    protected override void OnDestroyed()
     {
         EngineWindow.Instance.TextInput -= OnTextInput;
         EngineWindow.Instance.KeyDown -= OnKeyDown;

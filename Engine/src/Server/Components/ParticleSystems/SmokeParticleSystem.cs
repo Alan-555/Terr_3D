@@ -62,7 +62,7 @@ public class SmokeParticleSystem : ParticleSystem
         instance.Alpha = RandomValNormalised(); 
     }
 
-    public override void OnInitialise()
+    protected override void OnInitialise()
     {
         for (int i = 0; i < _count; i++)
         {

@@ -7,15 +7,15 @@ using Terr3D.Server.Entities;
 namespace Terr3D.Server.Engine;
 
 
-public static class FrustumCulling
+public static class QuadTreeBuilder
 {
 
-    public static QuadTreeNode Construct(Scene scene, float cellSize, int numChunks)
+    public static QuadTreeNode Construct(Scene scene, float worldSize, int numChunks)
     {
-        float size = cellSize * numChunks;
+        float cellSize = worldSize / numChunks;
 
         int depth = (int)Math.Log(numChunks, 4); //assuming numChunks is divisible by four
-        var halfSize = size / 2f;
+        var halfSize = cellSize / 2f;
         var rootVolume = new Bounds(Vector3.Zero, new(halfSize));
         return Construct(scene, rootVolume, depth);
     }
@@ -102,9 +102,9 @@ public static class FrustumCulling
 
 public class QuadTreeNode
 {
-
     public readonly Bounds volume;
-    public readonly QuadTreeNode[] children = new QuadTreeNode[4];
+    public readonly List<QuadTreeNode>? subTrees;
+    public QuadTreeNode[] children;
     public readonly Renderer[]? renderers = null;
     public readonly Collider[]? colliders = null;
     public readonly bool isLeaf;
@@ -114,6 +114,15 @@ public class QuadTreeNode
         this.volume = volume;
         isLeaf = false;
         children = new QuadTreeNode[4];
+    }
+
+    public QuadTreeNode()
+    {
+        volume = new()
+        {
+            IsGlobal = true
+        };
+        children = null!;
     }
 
     public QuadTreeNode(Bounds volume, Renderer[] renderers, Collider[] colliders)

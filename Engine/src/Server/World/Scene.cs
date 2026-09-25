@@ -13,22 +13,13 @@ public abstract class Scene
     public Worldspawn Worldspawn {get; private init;}
     public SceneRegistry SceneRegistry { get; private init; } = new();
 
-    public SpacePartitioner Partitioner { get; private init; }
+    public QuadTreeNode SceneNode;
 
-    public Scene()
+    public Scene(float worldSize, int numChunks)
     {
         Worldspawn = new(this);
-        
-        //Spawn canvas
-        
-        Entity.Instantiate(()=> new Canvas("Canvas", Worldspawn));
-
-        Entity.Instantiate(()=> new Player("Player", Worldspawn));
-
-        var terrain = Entity.Instantiate(()=> new Terrain("Terrain", Worldspawn, 50f, 256));
-        
         SpawnStaticEntities();
-        Partitioner = new(this, terrain.TerrainSize / terrain.NumChunks, terrain.NumChunks);
+        SceneNode = QuadTreeBuilder.Construct(this, worldSize, numChunks);
         SpawnDynamicEntities();
     }
     
@@ -104,4 +95,11 @@ public abstract class Scene
         }*/
 
     }
+}
+
+
+public class EmptyScene(float worldSize, int numChunks) : Scene(worldSize, numChunks)
+{
+    public override void SpawnDynamicEntities(){}
+    public override void SpawnStaticEntities(){}
 }

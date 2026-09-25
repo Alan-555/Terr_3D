@@ -79,8 +79,8 @@ public abstract class Entity
         IsStatic = isStatic;
         Name = name;
         Transform = new(this);
-        
-        if(this is Worldspawn)
+
+        if (this is Worldspawn)
         {
             return;
         }
@@ -101,7 +101,13 @@ public abstract class Entity
 
     public static EmptyEntity InstantiateEmpty(string name, Entity parent, bool isStatic = false)
     {
-        return Instantiate(()=>new EmptyEntity(name, parent, isStatic));
+        return Instantiate(() => new EmptyEntity(name, parent, isStatic));
+    }
+
+    public static EmptyEntity InstantiateEmptyWith(string name, Entity parent, bool isStatic, params Component[] components)
+    {
+        return Instantiate(() => (EmptyEntity)new EmptyEntity(name, parent, isStatic).WithComponents(components));
+
     }
 
     public static T Instantiate<T>(Func<T> factory) where T : Entity
@@ -160,8 +166,8 @@ public abstract class Entity
     public void SetParent(Entity? parent)
     {
         parent ??= Onstage.Worldspawn;
-        
-        if(Parent != null)
+
+        if (Parent != null)
         {
             //we've been disowned :(
             Parent._children.Remove(this);
@@ -187,13 +193,21 @@ public abstract class Entity
         AddComponent<T>();
         return this;
     }
+
+    public Entity WithComponents(params Component[] components)
+    {
+        foreach (var c in components)
+            AddComponent(c);
+        return this;
+    }
+
     public Entity WithComponent(Component component)
     {
         AddComponent(component);
         return this;
     }
 
-    public E_T WithComponent<E_T,T>() where T : Component, new() where E_T : Entity
+    public E_T WithComponent<E_T, T>() where T : Component, new() where E_T : Entity
     {
         AddComponent<T>();
         return (E_T)this;
@@ -240,14 +254,17 @@ public abstract class Entity
         return component != null;
     }
 
-    /*void OnTransformUpdate()
+    public void TransformUpdated() => OnTransformUpdated();
+    
+
+    void OnTransformUpdated()
     {
         if (IsStatic) return;
         foreach (var component in Components)
-            component.Thinker.OnTransformUpdate();
+            component.TransformUpdated();
         foreach (var child in _children)
-            child.Thinker.OnTransformUpdate();
-    }*/
+            child.OnTransformUpdated();
+    }
 
     public void SetEnabled(bool state)
     {
@@ -315,7 +332,7 @@ public static class EntityLifecycle
     private static void InitialiseAll(Entity node)
     {
         foreach (Component component in node.Components)
-            component.OnInitialise();
+            component.Initialise();
 
         node.OnInitialise();
 

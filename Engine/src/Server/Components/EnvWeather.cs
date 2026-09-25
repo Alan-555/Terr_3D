@@ -7,7 +7,7 @@ using Terr3D.Server.Engine;
 
 namespace Terr3D.Server.Components;
 
-public class Environment : BehaviourComponent, IEnvironmentProvider
+public class Environment : BehaviourComponent
 {
 
     const float defaultFog = 0.0125f;
@@ -38,18 +38,13 @@ public class Environment : BehaviourComponent, IEnvironmentProvider
         lighting_Intensity = 0
     };
 
-    public override void OnInitialise()
+    protected override void OnInitialise()
     {
         //Add a sky quad
         _sky = Entity.AddComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Sky], ResourceManager.Meshes[ResourceIndex.Meshes.SkyQuad], RendererClass.RENDER_IGNORE));
 
         //Add the sun
         _sun = Entity.InstantiateEmpty("Sun", Onstage.Worldspawn, false);
-    }
-
-    public void Register()
-    {
-        Onstage.Globals.Register<IEnvironmentProvider>(this);
     }
 
     public void SetFogDensity(float d)
@@ -152,7 +147,7 @@ public class Environment : BehaviourComponent, IEnvironmentProvider
         _stormCoolDown = coolDown;
         _stormNextStrike = EngineWindow.Time + 10f;
         _globalRain?.Destroy();
-        _globalRain = Onstage.Globals.Player.PlayerCam.Entity.AddComponent(new RainParticleSystem(5000));
+        //_globalRain = Onstage.Globals.Player.PlayerCam.Entity.AddComponent(new RainParticleSystem(5000));
         IsStormDamaging = false;
         _stormDamagesFor = 5f;
     }
@@ -217,7 +212,7 @@ public class Environment : BehaviourComponent, IEnvironmentProvider
     }
     #endregion
 
-    public override void OnDestroyed()
+    protected override void OnDestroyed()
     {
         base.OnDestroyed();
     }

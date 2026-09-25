@@ -33,14 +33,9 @@ public class EngineWindow : GameWindow
     public float TimeScale { get; set; } = 1f;
 
     /// <summary>
-    /// The scene this window is to render
-    /// </summary>
-    public Scene? BoundScene { get; private set; }
-
-    /// <summary>
     /// The scene drawer that draws the scene
     /// </summary>
-    public SceneDrawer? SceneDrawer { get; private set; }
+    public WorldDrawer? SceneDrawer { get; private set; }
 
 
     /// <summary>
@@ -51,12 +46,6 @@ public class EngineWindow : GameWindow
     private EngineWindow(NativeWindowSettings windowSettings) : base(GameWindowSettings.Default, windowSettings)
     {
         _instance = this;
-    }
-
-    public void ChangeScene(Scene scene)
-    {
-        BoundScene = scene;
-        SceneDrawer = new(scene);
     }
 
     public static EngineWindow ConstructScreen(Action onGpuReady)
@@ -111,7 +100,7 @@ public class EngineWindow : GameWindow
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         //Render the scene
-        SceneDrawer?.RenderScene();
+        World.DrawWorld();
 
         SwapBuffers();
 
@@ -152,7 +141,7 @@ public class EngineWindow : GameWindow
         Controls();
 
         //update scene
-        BoundScene?.UpdateScene(IsPaused ? 0 : dt * TimeScale);
+        World.EngineLoop(IsPaused ? 0 : dt * TimeScale);
 
     }
 
@@ -169,14 +158,11 @@ public class EngineWindow : GameWindow
         base.OnResize(e);
         GL.Viewport(0, 0, e.Width, e.Height);
         //also update the current camera
-        BoundScene?.Globals.CurrentCamera.UpdateAspect(ClientSize.X, ClientSize.Y);
+        World.Instance.ActiveCamera?.UpdateAspect(ClientSize.X, ClientSize.Y);
     }
 
     protected override void OnUnload()
     {
         base.OnUnload();
-
-        Diagnostics.Info("Engine clean up...");
-        BoundScene?.DestroyScene();
     }
 }

@@ -32,8 +32,6 @@ public abstract class ParticleSystem : BehaviourComponent
         InitGPU();
     }
 
-    public abstract override void OnInitialise();
-
     private void InitGPU()
     {
         _vao = GL.GenVertexArray();
@@ -115,7 +113,7 @@ public abstract class ParticleSystem : BehaviourComponent
         GL.BindVertexArray(0);
     }
 
-    public override void OnDestroyed()
+    protected override void OnDestroyed()
     {
         GL.DeleteBuffer(_instanceVBO);
         GL.DeleteVertexArray(_vao);

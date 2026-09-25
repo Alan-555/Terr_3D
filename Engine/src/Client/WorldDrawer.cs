@@ -9,7 +9,7 @@ using Terr3D.Utils;
 
 namespace Terr3D.Client;
 
-public class SceneDrawer
+public class WorldDrawer
 {
 
     const int DepthBufferRes = 1024;
@@ -31,7 +31,7 @@ public class SceneDrawer
 
     ShaderProgram _fontShader;
 
-    public SceneDrawer()
+    public WorldDrawer()
     {
         _depthBufferTexture = new Texture(depthBuffer.depthMap);
         _depthShader = ResourceManager.Shaders[ResourceIndex.Shaders.Depth];
@@ -43,13 +43,12 @@ public class SceneDrawer
     /// </summary>
     uint _frame = 0;
 
-
     /// <summary>
     /// Renders the entire scene to the default buffer
     /// </summary>
-    public void RenderScene(Scene scene)
+    public void RenderWorld()
     {
-        var cam = World.ActiveCamera;
+        var cam = World.Instance.ActiveCamera;
         if(cam == null) return;
 
         //cache matrices
@@ -75,7 +74,7 @@ public class SceneDrawer
         RenderGeometry(ref mat, includePersistent: false);
 
         //render particles
-        foreach (var ps in scene.SceneRegistry.ParticleSystems)
+        foreach (var ps in World.GetAllParticleSystems())
         {
             ps.Render(ref mat.viewMatrix, ref mat.projectionMatrix, cam.Transform.Position);
         }
@@ -83,18 +82,19 @@ public class SceneDrawer
         //render persistent overlays
         RenderGeometry(ref mat, onlyPersistent: true);
 
-        //render UI pass
-        _fontShader.Use();
+        //render UI pass TODO:
+        /*_fontShader.Use();
         foreach (var fontRenderer in Globals.Canvas.FontRenderer.PrepareFrame())
         {
             RenderShader(fontRenderer, _fontShader, ref mat, true);
-        }
+        }*/
 
         _frame++;
     }
 
     void DrawSky(ref MatrixPackage mat)
     {
+        /* FIXME:
         var size = EngineWindow.Instance.ClientSize;
         //update size
         if (_skyBuffer == null || _skyBuffer.Width != size.X || _skyBuffer.Height != size.Y)
@@ -123,7 +123,7 @@ public class SceneDrawer
 
         //cleanup
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-        GL.Viewport(0, 0, size.X, size.Y);
+        GL.Viewport(0, 0, size.X, size.Y);*/
     }
 
     //Renders the scene into a depth texture used for shadow mapping
@@ -178,11 +178,11 @@ public class SceneDrawer
 
         //static renderers (never persistent)
         if (!onlyPersistent)
-            worldRenderers = scene.Partitioner.QueryFrustum(mat.viewProjMatrix);
+            worldRenderers = World.Queries.QueryFrustum(mat.viewProjMatrix);
 
 
         //dynamic renderers
-        foreach (var r in SceneRegistry.DynamicRenderers)
+        foreach (var r in World.GetAllRenderers(RendererClass.RENDERER_DYNAMIC))
         {
             bool isPersistent = r.rendererClass == RendererClass.RENDERER_PERSISTENT;
 
@@ -295,12 +295,12 @@ public class SceneDrawer
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_SUN_DIR))
         {
-            Vector3 sunDir = Globals.Environment.SunDir;
+            Vector3 sunDir = new(); //FIXME:
             shader.SetUniform("sunDir", ref sunDir);
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_CAMERA_POS))
         {
-            Vector3 camPos = Globals.CurrentCamera.Transform.Position;
+            Vector3 camPos = World.Instance.ActiveCamera?.Transform.Position ?? new Vector3();
             shader.SetUniform("camPos", ref camPos);
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_ALPHA_BLEND))
@@ -316,7 +316,7 @@ public class SceneDrawer
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_DYNAMIC_LIGHTS))
         {
-            var camPos = new Vector4(Globals.CurrentCamera.Transform.Position, 1f);
+            var camPos = new Vector4(World.Instance.ActiveCamera?.Transform.Position ?? new Vector3(), 1f);
             shader.SetUniform("plrLight.pos", ref camPos);
             var clr = new Vector3(245, 186, 69) / 255f;
             shader.SetUniform("plrLight.colour", ref clr);
@@ -352,7 +352,7 @@ public class SceneDrawer
         {
             if (_skyBufferTexture != null)
                 shader.SetUniform("skyTexture", ref _skyBufferTexture, 30);
-            var half = Globals.Worldspawn.TerrainSize / 2f;
+            var half = 50f; //FIXME:
             shader.SetUniform("worldHalfExtents", ref half);
             shader.SetUniformNoRef("fogDensity", 0.001f); //TODO: fog
         }
@@ -429,10 +429,10 @@ public class SceneDrawer
         center /= 8;
 
         //move the light space camera further away towards the sun
-        var lightPos = center + (Globals.Environment.SunDir * SunDistance);
+        var lightPos = center + (new Vector3() * SunDistance); //FIXME:
 
         //compute the light view matrix
-        Quaternion inverseSunRot = Globals.Environment.Sun.Transform.Rotation.Inverted();
+        Quaternion inverseSunRot = World.Instance.ActiveCamera?.Transform.Rotation.Inverted() ?? new();//Globals.Environment.Sun.Transform.Rotation.Inverted();
 
         Matrix4 lightRotationMatrix = Matrix4.CreateFromQuaternion(inverseSunRot);
 

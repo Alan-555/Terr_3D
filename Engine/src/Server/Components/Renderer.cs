@@ -34,7 +34,7 @@ public class Renderer(ShaderProgram shader, Mesh mesh, RendererClass rendererCla
     /// </summary>
     public uint renderedOn = 1;
 
-    public override void OnInitialise()
+    protected override void OnInitialise()
     {
         ComputeStaticBB();
         if (Entity.IsStatic && this is not WireframeBoxRenderer && rendererClass == RendererClass.RENDERER_DYNAMIC)
@@ -137,7 +137,7 @@ public class Renderer(ShaderProgram shader, Mesh mesh, RendererClass rendererCla
         material.SetUniforms(ShaderProgram);
     }
 
-    public override void OnTransformUpdate()
+    protected override void OnTransformUpdate()
     {
         //invalidate
         _cachedDynamicAABB = null;

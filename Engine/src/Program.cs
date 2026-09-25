@@ -27,14 +27,15 @@ class Program
 
     static void InitRest(bool isMenu)
     {
+        World.Create();
         Scene scene = new ConcreteScene();
+        World.LoadScene(scene);
 
         //once client and GL context is ready, we initialise the rest
         scene.InitWorld();
         if(isMenu)
             scene.InitMainMenu();
 
-        EngineWindow.Instance.ChangeScene(scene);
         Diagnostics.Info("Loading done.");
         EngineWindow.Instance.IsVisible = true;
     }

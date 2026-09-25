@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using Terr3D.Client.Resources;
+using Terr3D.Server.Engine;
 using Terr3D.Server.Shared;
 
 namespace Terr3D.Server.Components;
@@ -31,7 +32,7 @@ public class RainParticleSystem : ParticleSystem
         _instances[i].Scale = new Vector3(RandHelper.RandFloatNormalised() * 0.5f + 0.5f + 0.2f) * new Vector3(0.1f, 1f, 0.1f);
         _instances[i].Alpha = (RandHelper.RandFloatNormalised() * 0.3f + 0.1f) * intensity;
 
-        if (Entity.Onstage.Partitioner.Raycast(new(pos, -Vector3.UnitY), out var hit))
+        if (World.Queries.Raycast(new(pos, -Vector3.UnitY), out var hit))
             _obstacles[i] = hit.Position.Y;
         else
             _obstacles[i] = -100;
@@ -96,7 +97,7 @@ public class RainParticleSystem : ParticleSystem
     }
 
 
-    public override void OnInitialise()
+    protected override void OnInitialise()
     {
         for (int i = 0; i < _count; i++)
         {

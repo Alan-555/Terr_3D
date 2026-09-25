@@ -42,7 +42,7 @@ public class Physics : BehaviourComponent
     /// <summary>
     /// Is the entity grounded now?
     /// </summary>
-    public bool IsGrounded => MathF.Abs(Transform.Position.Y - Entity.Onstage.Globals.Worldspawn.SampleHeight(Transform.Position)) < 0.5f;
+    public bool IsGrounded => true;//MathF.Abs(Transform.Position.Y - Entity.Onstage.Globals.Worldspawn.SampleHeight(Transform.Position)) < 0.5f; TODO: finish
 
     public AABB_Collider? Collider { get; set; }
 
@@ -60,7 +60,7 @@ public class Physics : BehaviourComponent
 
     public override void Update(float dt)
     {
-        if(Program.DEBUG_FLAG)
+        /*if(Program.DEBUG_FLAG)
             DebugControls(dt);
 
         //Apply gravity
@@ -73,7 +73,7 @@ public class Physics : BehaviourComponent
         _velocity -= _velocity * Drag * dt;
 
         //cache the ground normal and terrain steepness
-        var normal = Entity.Onstage.Globals.Worldspawn.GetTerrainNormal(Transform.Position);
+        var normal = 0f;//Entity.Onstage.Globals.Worldspawn.GetTerrainNormal(Transform.Position); //TODO: fix
         float steepness = Vector3.Dot(Vector3.UnitY, normal);
 
         //If we are grounded, apply friction
@@ -114,13 +114,13 @@ public class Physics : BehaviourComponent
                 Transform.Position.Y,
                 Math.Clamp(Transform.Position.Z, -worldExtents, worldExtents)
             );
-        }
+        }*/
     }
 
 
     private void MoveAndResolveCollisions(float dt)
     {
-        Transform.Position += _velocity * dt;
+       /* Transform.Position += _velocity * dt;
         if (Collider == null) return;
 
         var colliders = Entity.Onstage.Partitioner.QueryCollision(Collider.AABB);
@@ -145,7 +145,7 @@ public class Physics : BehaviourComponent
                 }
             }
         }
-
+*/
 
 
 

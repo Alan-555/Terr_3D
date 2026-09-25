@@ -15,6 +15,8 @@ public struct Bounds
     public Vector3 MinPoint => Position - HalfExtents;
     public Vector3 MaxPoint => Position + HalfExtents;
 
+    public bool IsGlobal = false; //TODO: just grow the root bounding box
+
     public Bounds(Vector3 position, Vector3 halfExtents)
     {
         Position = position;
@@ -30,6 +32,7 @@ public struct Bounds
 
     public bool PointInVolumeInfHeight(Vector3 point)
     {
+        if(IsGlobal) return true;
         return point.X >= MinPoint.X &&
                point.Z >= MinPoint.Z &&
 
@@ -40,6 +43,7 @@ public struct Bounds
 
     public bool PointInVolume(Vector3 point)
     {
+        if(IsGlobal) return true;
         return point.X >= MinPoint.X &&
                point.Y >= MinPoint.Y &&
                point.Z >= MinPoint.Z &&
@@ -51,6 +55,7 @@ public struct Bounds
 
     public bool Intersects(Bounds other)
     {
+        if(IsGlobal) return true;
         return Math.Abs(Position.X - other.Position.X) <= (HalfExtents.X + other.HalfExtents.X) &&
                Math.Abs(Position.Y - other.Position.Y) <= (HalfExtents.Y + other.HalfExtents.Y) &&
                Math.Abs(Position.Z - other.Position.Z) <= (HalfExtents.Z + other.HalfExtents.Z);
@@ -58,6 +63,8 @@ public struct Bounds
 
     public bool Intersects(Ray ray, out float distance)
     {
+        distance = 0;
+        if(IsGlobal) return true;
         float t1 = (MinPoint.X - ray.Origin.X) * ray.InvDirection.X;
         float t2 = (MaxPoint.X - ray.Origin.X) * ray.InvDirection.X;
         float t3 = (MinPoint.Y - ray.Origin.Y) * ray.InvDirection.Y;
@@ -80,6 +87,7 @@ public struct Bounds
 
     public bool IntersectsInfHeight(Bounds other)
     {
+        if(IsGlobal) return true;
         return Math.Abs(Position.X - other.Position.X) <= (HalfExtents.X + other.HalfExtents.X) &&
                Math.Abs(Position.Z - other.Position.Z) <= (HalfExtents.Z + other.HalfExtents.Z);
     }
@@ -96,6 +104,7 @@ public struct Bounds
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Visibility ClassifyVisibilityForFrustum(Matrix4 vp, Bounds volume)
     {
+        if(volume.IsGlobal) return Visibility.PARTIAL;
         //Gribb-Hartmann method
         Vector4[] planes =
         [

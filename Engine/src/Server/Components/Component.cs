@@ -62,30 +62,35 @@ public abstract class Component
         OnDestroyed();
     }
 
+    public void Initialise() => OnInitialise();
+
     /// <summary>
     /// Called once the component sits on an Entity and all dependencies are resolved
     /// </summary>
-    public virtual void OnInitialise() { }
+    protected virtual void OnInitialise() { }
 
     /// <summary>
     /// Called when the component has been enabled (and had been previously disabled)
     /// </summary>
-    public virtual void OnEnable() { }
+    protected virtual void OnEnable() { }
 
     /// <summary>
     /// Called when the component has been disabled
     /// </summary>
-    public virtual void OnDisable() { }
+    protected virtual void OnDisable() { }
 
     /// <summary>
     /// Called once the component is destroyed
     /// </summary>
-    public virtual void OnDestroyed() { }
+    protected virtual void OnDestroyed() { }
+
+
+    public void TransformUpdated() => OnTransformUpdate();
 
     /// <summary>
     /// Called when the entity this component is attached to moves in world-space
     /// </summary>
-    public virtual void OnTransformUpdate() { }
+    protected virtual void OnTransformUpdate() { }
 
 }
 
