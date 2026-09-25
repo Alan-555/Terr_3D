@@ -58,8 +58,8 @@ public class WorldDrawer
         var viewProjMatrixForCulling = viewMatrix * projectionMatrix;
 
 
-        /*if (PlayerController.debugCull)
-            viewProjMatrixForCulling = Globals.Player.PlayerCam.ViewMatrix * Globals.Player.PlayerCam.ProjectionMatrix;*/
+        if (PlayerController.debugCull)
+            viewProjMatrixForCulling = World.GetSingleton<PlayerCamera>().plrCam.ViewMatrix * World.GetSingleton<PlayerCamera>().plrCam.ProjectionMatrix;
 
         //render to the light depth buffer and obtain the light matrix 
         DepthPass(ref viewMatrix, projectionMatrix, out var lightMatrix);

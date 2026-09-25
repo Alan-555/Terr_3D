@@ -39,10 +39,16 @@ public class Player : Entity
         });
 
         //Free cam feature
-        var freeCamEntity = InstantiateEmpty("FreeCamera", Onstage.Worldspawn).WithComponent<Camera>();
-        var fcc = freeCamEntity.AddComponent<FreeCameraController>();
+        var freeCamEntity = InstantiateEmptyWith("FreeCamera", Onstage.Worldspawn, false, new Camera(), new FreeCameraController());
         freeCamEntity.SetEnabled(false);
 
-        AddComponent<PlayerController>().freeCamera = fcc;
+        var c = AddComponent<PlayerController>();
+        c.freeCamera = freeCamEntity.GetComponent<FreeCameraController>()!;
+
+    }
+
+    public override void OnInitialise()
+    {
+        _ = new PlayerCamera(GetComponent<PlayerController>()!.playerCamera);
     }
 }

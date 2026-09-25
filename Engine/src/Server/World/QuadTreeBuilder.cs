@@ -12,10 +12,8 @@ public static class QuadTreeBuilder
 
     public static QuadTreeNode Construct(Scene scene, float worldSize, int numChunks)
     {
-        float cellSize = worldSize / numChunks;
-
         int depth = (int)Math.Log(numChunks, 4); //assuming numChunks is divisible by four
-        var halfSize = cellSize / 2f;
+        var halfSize = worldSize / 2f;
         var rootVolume = new Bounds(Vector3.Zero, new(halfSize));
         return Construct(scene, rootVolume, depth);
     }

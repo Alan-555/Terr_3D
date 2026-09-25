@@ -60,20 +60,20 @@ public class Physics : BehaviourComponent
 
     public override void Update(float dt)
     {
-        /*if(Program.DEBUG_FLAG)
+        if(Program.DEBUG_FLAG)
             DebugControls(dt);
 
         //Apply gravity
         if (entityFalls)
             _velocity += Gravity * dt;
         else
-            Transform.Position = new(Transform.Position.X, Entity.Onstage.Globals.Worldspawn.SampleHeight(Transform.Position), Transform.Position.Z);
+            Transform.Position = new(Transform.Position.X, /*Entity.Onstage.Globals.Worldspawn.SampleHeight(Transform.Position)*/1f, Transform.Position.Z);
 
         //Apply drag
         _velocity -= _velocity * Drag * dt;
 
         //cache the ground normal and terrain steepness
-        var normal = 0f;//Entity.Onstage.Globals.Worldspawn.GetTerrainNormal(Transform.Position); //TODO: fix
+        Vector3 normal = new();//Entity.Onstage.Globals.Worldspawn.GetTerrainNormal(Transform.Position); //TODO: fix
         float steepness = Vector3.Dot(Vector3.UnitY, normal);
 
         //If we are grounded, apply friction
@@ -96,7 +96,7 @@ public class Physics : BehaviourComponent
         MoveAndResolveCollisions(dt);
 
         //cache the ground height
-        float groundHeight = Entity.Onstage.Globals.Worldspawn.SampleHeight(Transform.Position);
+        float groundHeight = 1f;// Entity.Onstage.Globals.Worldspawn.SampleHeight(Transform.Position);
 
 
         if (Transform.Position.Y < groundHeight)
@@ -106,7 +106,7 @@ public class Physics : BehaviourComponent
         }
 
         //disallow the body to leave the bounds
-        var worldExtents = Entity.Onstage.Globals.Worldspawn.TerrainSize / 2f - 0.1f;
+       /* var worldExtents = Entity.Onstage.Globals.Worldspawn.TerrainSize / 2f - 0.1f;
         if (Math.Abs(Transform.Position.X) >= worldExtents || Math.Abs(Transform.Position.Z) >= worldExtents)
         {
             Transform.Position = new Vector3(
@@ -120,10 +120,10 @@ public class Physics : BehaviourComponent
 
     private void MoveAndResolveCollisions(float dt)
     {
-       /* Transform.Position += _velocity * dt;
+       Transform.Position += _velocity * dt;
         if (Collider == null) return;
 
-        var colliders = Entity.Onstage.Partitioner.QueryCollision(Collider.AABB);
+        /*var colliders = Entity.Onstage.Partitioner.QueryCollision(Collider.AABB);
         foreach (var col in colliders)
         {
             var currentHull = Collider.AABB;

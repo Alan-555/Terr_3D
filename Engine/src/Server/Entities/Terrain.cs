@@ -6,6 +6,7 @@ using Terr3D.Client;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
 using Terr3D.Server.Engine;
+using Terr3D.Server.Shared;
 using Terr3D.Server.WorldGen;
 using Terr3D.Utils;
 using YamlDotNet.Core.Events;
@@ -36,6 +37,7 @@ public class Terrain : Entity
         //Store terrain size in units (meters)
         TerrainSize = worldSpaceSize;
         _heightMap = new(heightMapSize, heightMapSize);
+        _heightMap.Noise();
         Diagnostics.Info("Begin terrain generation...");
         
         //calculate the number of total chunks (per axis)
@@ -181,5 +183,16 @@ class HeighMap
         float blendedHeight = r00 * w00 + r10 * w10 + r01 * w01 + r11 * w11;
 
         return blendedHeight;
+    }
+
+
+    public void Noise()
+    {
+        float height = 0f;
+        for(int i = 0; i < map.Length; i++)
+        {
+            height += RandHelper.RandFloat(-0.1f, 0.1f);
+            map[i] = height;
+        }
     }
 }

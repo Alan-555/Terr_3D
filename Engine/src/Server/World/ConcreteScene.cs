@@ -4,7 +4,7 @@ using Terr3D.Utils;
 
 namespace Terr3D.Server.Engine;
 
-public class ConcreteScene() : Scene(50f, 4)
+public class ConcreteScene() : Scene(256f, 16)
 {
     public override void SpawnDynamicEntities()
     {
@@ -22,6 +22,6 @@ public class ConcreteScene() : Scene(50f, 4)
 
     public override void SpawnStaticEntities()
     {
-        var terrain = Entity.Instantiate(()=> new Terrain("Terrain", Worldspawn, 50f, 256));
+        var terrain = Entity.Instantiate(()=> new Terrain("Terrain", Worldspawn, 256f, 256));
     }
 }

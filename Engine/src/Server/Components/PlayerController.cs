@@ -34,7 +34,7 @@ public class PlayerController : BehaviourComponent
 
     bool isPlayerFrozen = false;
 
-    public static bool debugCull = false;
+    public static bool debugCull = true;
 
     public Camera PlayerCam => playerCamera;
     public PlayerController LocalPlayer => this;
@@ -86,11 +86,11 @@ public class PlayerController : BehaviourComponent
 
     void ToggleFreeCam()
     {
-/*
+
         //Which camera to enable?
-        bool toEnableFreeCam = Onstage.Globals.CurrentCamera == playerCamera;
+        bool toEnableFreeCam = World.Instance.ActiveCamera == playerCamera;
         var newCam = toEnableFreeCam ? freeCamera.camera : playerCamera;
-        Onstage.Globals.CurrentCamera = newCam;
+        World.Instance.ActiveCamera = newCam;
         if (toEnableFreeCam)
         {
             playerCamera.SetEnabled(false);
@@ -111,7 +111,7 @@ public class PlayerController : BehaviourComponent
             playerCamera.SetEnabled(true);
             freeCamera.SetEnabled(false);
             isPlayerFrozen = false;
-        }*/
+        }
     }
 
     void Move(float dt)

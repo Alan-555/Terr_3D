@@ -49,6 +49,11 @@ public class World
         destroyed += () => Instance.Singletons.Remove(type);
     }
 
+    public static T GetSingleton<T>() where T : SingletonComponent
+    {
+        return (T)Instance.Singletons[typeof(T)];
+    }
+
     public static void LoadScene(Scene scene)
     {
         Instance._partitioner.AddTree(scene.SceneNode);
