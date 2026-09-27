@@ -17,11 +17,11 @@ namespace Terr3D.Server.Entities;
 /// This entity is crucial for the correct runtime. It manages common features of the engine, like the terrain, skybox and other very important things. 
 /// The engine will not function without this entity
 /// </summary>
-public class Terrain : Entity
+public class Terrain : Entity, IGlobalGroundProvider
 {
 
 
-    public const int QuadsPerChunk = 26; //how may quads (per axis) do we use? This is arbitrary and good ballance has to be made. More chunks = more work for the CPU to cull them, less chunks = CPU can't cull so GPU will have to render a lot of triangles
+    public const int QuadsPerChunk = 30; //how may quads (per axis) do we use? This is arbitrary and good ballance has to be made. More chunks = more work for the CPU to cull them, less chunks = CPU can't cull so GPU will have to render a lot of triangles
     public const int QuadsPerMeter = 2; //from the assignment. Sampling each 0.5meters means we have two quads per meter
 
     /// <summary>
@@ -74,7 +74,7 @@ public class Terrain : Entity
             {
                 material = mat
             });
-            ent.Transform.Position = new(pos.X, 0, pos.Y);
+            ent.Transform.Position = new(pos.X, 0f, pos.Y);
         }
     }
 
@@ -124,17 +124,21 @@ public class Terrain : Entity
     }
 
 
-    public Vector3 GetTerrainNormal(Vector3 position, float delta = 0.1f)
+    public Vector3 GetTerrainNormal(Vector2 position, float delta = 0.1f)
     {
-        float left = SampleHeight(position + new Vector3(-delta, 0, 0));
-        float right = SampleHeight(position + new Vector3(delta, 0, 0));
-        float back = SampleHeight(position + new Vector3(0, 0, -delta));
-        float forward = SampleHeight(position + new Vector3(0, 0, delta));
+        float left = SampleHeight(position + new Vector2(-delta, 0));
+        float right = SampleHeight(position + new Vector2(delta, 0));
+        float back = SampleHeight(position + new Vector2(0, -delta));
+        float forward = SampleHeight(position + new Vector2(0, delta));
 
         Vector3 normal = new Vector3(left - right, 2f * delta, back - forward);
 
         return normal.Normalized();
     }
+
+    public float GetHeightAt(float x, float z) => SampleHeight(new Vector2(x, z));
+
+    public Vector3 GetNormalAt(float x, float z) => GetTerrainNormal(new Vector2(x, z));
 }
 
 
@@ -201,7 +205,7 @@ class HeighMap
     List<(Vector2 pos, float height)> points = [];
     for (int i = 0; i < 10; i++)
     {
-        points.Add((new Vector2(RandHelper.RandFloatNormalised(), RandHelper.RandFloatNormalised()), RandHelper.RandFloat(0.01f, 100f)));
+        points.Add((new Vector2(RandHelper.RandFloatNormalised(), RandHelper.RandFloatNormalised()), RandHelper.RandFloat(0.01f, 64f)));
     }
     
     for (int x = 0; x < SizeX; x++)

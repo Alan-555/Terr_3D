@@ -1,6 +1,7 @@
 using OpenTK.Mathematics;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
+using Terr3D.Server.Engine;
 
 namespace Terr3D.Server.Entities;
 
@@ -15,7 +16,7 @@ public class Player : Entity
         //Spawn the mesh representation of the player
         var playerMesh =
         new EmptyEntity("PlrWorldModel", this)
-        .WithComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Shaded], ResourceManager.Meshes[ResourceIndex.Meshes.Cube])
+        .WithComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Shaded], ResourceManager.Meshes[ResourceIndex.Meshes.Bambang])
         {
             material = new ShadedMaterial()
             {
@@ -49,6 +50,7 @@ public class Player : Entity
 
     public override void OnInitialise()
     {
-        _ = new PlayerCamera(GetComponent<PlayerController>()!.playerCamera);
+        if(World.TryGetSingleton<PlayerCamera>() == null)
+            _ = new PlayerCamera(GetComponent<PlayerController>()!.playerCamera);
     }
 }

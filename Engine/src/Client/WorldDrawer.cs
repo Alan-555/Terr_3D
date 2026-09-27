@@ -49,7 +49,7 @@ public class WorldDrawer
     public void RenderWorld()
     {
         var cam = World.Instance.ActiveCamera;
-        if(cam == null) return;
+        if (cam == null) return;
 
         //cache matrices
         var viewMatrix = cam.ViewMatrix;
@@ -82,14 +82,10 @@ public class WorldDrawer
         //render persistent overlays
         RenderGeometry(ref mat, onlyPersistent: true);
 
-        //render UI pass TODO:
-        /*_fontShader.Use();
-        foreach (var fontRenderer in Globals.Canvas.FontRenderer.PrepareFrame())
-        {
-            RenderShader(fontRenderer, _fontShader, ref mat, true);
-        }*/
 
         _frame++;
+        //reset the texture
+        GL.ActiveTexture(TextureUnit.Texture0);
     }
 
     void DrawSky(ref MatrixPackage mat)
@@ -104,7 +100,7 @@ public class WorldDrawer
         }
 
         var skyFeature = World.TryGetSingleton<EnvConfig>();
-        if(skyFeature == null)
+        if (skyFeature == null)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             return;
@@ -329,16 +325,14 @@ public class WorldDrawer
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_WIREFRAME))
         {
-            var target = ((WireframeBoxRenderer)renderer).Target;
-            Matrix4 scale = Matrix4.CreateScale(target.GetScale());
-            Matrix4 rotation = Matrix4.CreateFromQuaternion(target.GetRot());
-            Matrix4 translation = Matrix4.CreateTranslation(target.GetPos());
+            var bounds = ((WireframeBoxRenderer)renderer).Target.GetBounds();
+            Matrix4 scale = Matrix4.CreateScale(bounds.HalfExtents * 2);
+            Matrix4 translation = Matrix4.CreateTranslation(bounds.Position);
 
-            var modelMatrix = scale * rotation * translation;
-            
+            Matrix4 modelMatrix = scale * translation;
+
             shader.SetUniform("model", ref modelMatrix);
-            shader.SetUniform("view", ref mat.viewMatrix);
-            shader.SetUniform("projection", ref mat.projectionMatrix);
+
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_RENDER_PRIORITY))

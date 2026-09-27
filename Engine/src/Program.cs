@@ -38,9 +38,4 @@ class Program
         Diagnostics.Info("Loading done.");
         EngineWindow.Instance.IsVisible = true;
     }
-
-    public static void NewScene()
-    {
-        InitRest(false);
-    }
 }

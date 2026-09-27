@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Terr3D.Client;
 using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
@@ -12,13 +13,15 @@ public class World
     public Camera? ActiveCamera { get; set; }
     private readonly List<Scene> _loadedScenes = [];
 
+    public static ReadOnlyCollection<Scene> LoadedScenes => Instance._loadedScenes.AsReadOnly();
+
     private readonly Scene _persistentScene = new EmptyScene();
     private readonly Dictionary<Type, SingletonComponent> Singletons = [];
 
-    public readonly SpacePartitioner _partitioner;
+    private readonly SpacePartitioner _partitioner;
     public static SpacePartitioner Queries => Instance._partitioner;
 
-    public readonly WorldDrawer _worldDrawer;
+    private readonly WorldDrawer _worldDrawer;
 
     public World()
     {
@@ -26,10 +29,9 @@ public class World
         Instance = this;
 
         _partitioner = SpacePartitioner.CreateRootTree();
-
         _worldDrawer = new();
 
-        _ = new CanvasComp();
+        _ = new ConsoleWindow();
         LoadScene(_persistentScene);
     }
 

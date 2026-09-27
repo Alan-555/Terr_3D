@@ -4,7 +4,7 @@ using Terr3D.Server.Shared;
 namespace Terr3D.Server.Components;
 
 
-public abstract class Collider(bool isStatic = false) : Component, ISupportsWireframe, ISpatialBounds
+public abstract class Collider(bool isStatic = false) : Component, ISpatialBounds
 {
 
     /// <summary>

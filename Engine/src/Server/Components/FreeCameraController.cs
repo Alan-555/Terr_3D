@@ -31,17 +31,17 @@ public class FreeCameraController : BehaviourComponent
     void Move(float dt)
     {
         Vector3 move = new();
-        if (EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.S))
+        if (Input.KeyDown(KeyCode.S))
             move.Z = 1;
-        if (EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.W))
+        if (Input.KeyDown(KeyCode.W))
             move.Z = -1;
-        if (EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.A))
+        if (Input.KeyDown(KeyCode.A))
             move.X = -1;
-        if (EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.D))
+        if (Input.KeyDown(KeyCode.D))
             move.X = 1;
-        if (EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.Space))
+        if (Input.KeyDown(KeyCode.Space))
             move.Y = 1;
-        if (EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.C))
+        if (Input.KeyDown(KeyCode.C))
             move.Y = -1;
         var localRight = new Vector4(1, 0, 0, 0) * Transform.GlobalMatrix;
         var localUp = new Vector4(0, 1, 0, 0) * Transform.GlobalMatrix;
@@ -60,7 +60,7 @@ public class FreeCameraController : BehaviourComponent
     {
 
         Vector3 rotateInput = new();
-        var delta = EngineWindow.Instance.MouseState.Delta;
+        var delta = Input.MouseDelta;
         rotateInput.X -= delta.Y;
         rotateInput.Y -= delta.X;
 

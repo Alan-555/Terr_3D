@@ -13,7 +13,6 @@ using Terr3D.Utils;
 
 namespace Terr3D.Server.Modules;
 
-using WfAndTarget = (ISupportsWireframe supports, WireframeBoxRenderer? wfRenderer);
 
 
 /// <summary>
@@ -147,31 +146,24 @@ public class DebugConsole
             .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(baseType))];
     }
 
-#if false
+
 
     public Entities.Entity? GetEntity(string name)
     {
         if (name == "!picker")
         {
-            if (scene.Globals.Player.LocalPlayer.Raycast(out var hit))
-            {
-                return hit.Collider!.Entity;
-            }
-            else
-            {
-                throw new Exception("Nothing picked");
-            }
+            /* if (scene.Globals.Player.LocalPlayer.Raycast(out var hit))
+             {
+                 return hit.Collider!.Entity;
+             }
+             else
+             {
+                 throw new Exception("Nothing picked");
+             }*/
         }
-        return scene.SceneRegistry.Entities.FirstOrDefault(e => e.Name == name);
+        return Entity.FindEntityByName(name);
     }
 
-    //Player commands
-
-    [ConsoleCommand(_Player, "tp", "Teleports player to desired coordinates")]
-    public void PlayerTP(float x, float y, float z)
-    {
-        scene.Globals.Player.PlayerCam.Transform.Parent!.Transform.Position = new(x, y, z);
-    }
 
     //Entity commands
 
@@ -188,7 +180,7 @@ public class DebugConsole
         var compType = GetAllClassesOf<Components.Component>().FirstOrDefault(t => t.Name == classNameComponent);
         var entity = GetEntity(name) ?? throw new("Entity not found");
 
-        foreach (var c in entity.components)
+        foreach (var c in entity.Components)
         {
             if (c.GetType() == compType)
             {
@@ -216,7 +208,7 @@ public class DebugConsole
     public string SceneEntDump(bool reqStatic = false)
     {
         string ret = "";
-        foreach (var entity in scene.SceneRegistry.Entities)
+        foreach (var entity in Entity.GetAllEntities())
         {
             if (reqStatic && !entity.IsStatic || !reqStatic && entity.IsStatic) continue;
             ret += entity.ToString() + "\n";
@@ -226,25 +218,26 @@ public class DebugConsole
     }
 
     [ConsoleCommand(_Ent, "parent", "Sets the parent of an entity")]
-    public string EntParentTo(string child, string parent)
+    public string EntParentTo(string child, string parent = "")
     {
-        var otherEnt = GetEntity(parent) ?? throw new("Entity not found");
         var targetEnt = GetEntity(child) ?? throw new("Entity not found");
-        targetEnt.Transform.SetParent(otherEnt.Transform);
+        var otherEnt = GetEntity(parent) ?? targetEnt.Onstage.Worldspawn;
+        targetEnt.SetParent(otherEnt);
 
         return "";
     }
 
     [ConsoleCommand(_Ent, "create", "Creates a new entity")]
-    public void SceneEntNew(string name, params string[] args)
+    public void SceneEntNew(string type, string name, string parentName, params string[] args)
     {
-        var entType = GetAllClassesOf<Entities.Entity>().FirstOrDefault(t => t.Name == name);
+        var entType = GetAllClassesOf<Entities.Entity>().FirstOrDefault(t => t.Name == type);
 
         if (entType != null)
         {
-            var proc = ProcessParameters(entType.GetConstructors().First(), args, true);
-            object[] realArgs = [scene, .. proc];
-            object? instance = Activator.CreateInstance(entType, realArgs) ?? throw new Exception("Instance is null");
+            var parent = GetEntity(parentName) ?? throw new Exception("Ent not found");
+            object[] realArgs = [name, parent];
+            Entity instance = (Entity)(Activator.CreateInstance(entType, realArgs) ?? throw new Exception("Instance is null"));
+            Entity.Instantiate(()=> instance);
             return;
         }
 
@@ -259,10 +252,10 @@ public class DebugConsole
     }
 
     [ConsoleCommand(_Ent, "enabledc", "Disables/enables a component")]
-    public void SceneDisablec(string name, int compI,  bool enable)
+    public void SceneDisablec(string name, int compI, bool enable)
     {
         var entity = GetEntity(name) ?? throw new Exception("No such entity");
-        var comp = entity.components[compI];
+        var comp = entity.Components[compI];
         comp.SetEnabled(enable);
     }
 
@@ -294,41 +287,36 @@ public class DebugConsole
 
     private string SceneInfo(Entity entity)
     {
-        StringBuilder childInfo = new();
+        return SceneInfo(entity, 0);
+    }
 
-        if (entity.children.Count != 0)
+    private string SceneInfo(Entity entity, int indentLevel)
+    {
+        string indent = new('\t', indentLevel);
+        string itemIndent = new('\t', indentLevel + 1);
+        StringBuilder info = new();
+
+        info.AppendLine($"{indent}{entity.FullName}");
+        info.AppendLine($"{indent}Parent: {entity.Parent?.FullName}");
+        info.AppendLine($"{indent}Pos: {entity.Transform}");
+        info.AppendLine($"{indent}Enabled: {entity.IsEnabled} | Static: {entity.IsStatic} | Destroyed: {entity.IsDestroyed}");
+
+        if (entity.Children.Count != 0)
         {
-            foreach (var child in entity.children)
-            {
-                string s = SceneInfo(child.Entity);
-                s = s.Replace("\n\r", "\n");
-                s = s.Replace("\n", "\n   ");
-                childInfo.Append("   " + s);
-
-                childInfo.Append("\n");
-            }
-            childInfo.Append("Children:\n");
+            info.AppendLine($"{indent}Children:");
+            foreach (var child in entity.Children)
+                info.Append(SceneInfo(child, indentLevel + 1)+"\n\n");
         }
 
-        StringBuilder compInfo = new();
-
-        if (entity.components.Count != 0)
+        if (entity.Components.Count != 0)
         {
+            info.AppendLine($"{indent}Components:");
             int i = 0;
-            foreach (var comp in entity.components)
-            {
-                compInfo.Append($"   ({i++})" + comp.GetType());
-                compInfo.Append("\n");
-            }
-            compInfo.Append("Components:\n");
+            foreach (var comp in entity.Components)
+                info.AppendLine($"{itemIndent}({i++}){comp.GetType()}");
         }
 
-        return $@"{childInfo}
-Parent: {entity.Transform._parent?.Entity.ToString() ?? "orphan"}
-{compInfo}
-Enabled: {entity.IsEnabled} | Static: {entity.IsStatic} | Destroyed: {entity.IsDestroyed}
-{entity}
-";
+        return info.ToString();
     }
 
     //sv commands
@@ -344,8 +332,8 @@ Enabled: {entity.IsEnabled} | Static: {entity.IsStatic} | Destroyed: {entity.IsD
     public void ClUsecam(string name)
     {
         var e = GetEntity(name) ?? throw new Exception("No such entity");
-        var c = e.components.OfType<Camera>().FirstOrDefault() ?? throw new Exception("This entity has no camera!");
-        scene.Globals.CurrentCamera = c;
+        var c = e.GetComponent<Camera>() ?? throw new Exception("This entity has no camera!");
+        World.Instance.ActiveCamera = c;
 
     }
 
@@ -354,17 +342,16 @@ Enabled: {entity.IsEnabled} | Static: {entity.IsStatic} | Destroyed: {entity.IsD
     [ConsoleCommand(_Debug, "cull", "Uses the player camera for culling calculation, even if other camera is used.")]
     public void DebugPlayerCull()
     {
-        scene.Globals.Worldspawn.debugCulling = !scene.Globals.Worldspawn.debugCulling;
-        Player.debugCull = !Player.debugCull;
+        PlayerController.debugCull = !PlayerController.debugCull;
     }
 
     [ConsoleCommand(_Debug, "phybox", "Spawns a physics box")]
     public void DebugSpawnBox()
     {
-        var box = new Entities.DebugEntity(scene, "box" + (int)EngineWindow.Time, Client.Resources.ResourceManager.Meshes[Client.Resources.ResourceIndex.Meshes.Cube], false);
+        /*var box = new Entities.DebugEntity(scene, "box" + (int)EngineWindow.Time, Client.Resources.ResourceManager.Meshes[Client.Resources.ResourceIndex.Meshes.Cube], false);
         box.Transform.Position = scene.Globals.Player.PlayerCam.Transform.Position + (0, 10, 0);
         var p = box.AddComponent<Components.Physics>();
-        p.Collider = box.AddComponent(new AABB_Collider(new Vector3(1, 1, 1), default));
+        p.Collider = box.AddComponent(new AABB_Collider(new Vector3(1, 1, 1), default));*/
     }
 
     bool _showCol = false;
@@ -373,7 +360,7 @@ Enabled: {entity.IsEnabled} | Static: {entity.IsStatic} | Destroyed: {entity.IsD
     [ConsoleCommand(_Debug, "show", "Toggles the specified type of debug view. 'col' for colliders, 'misc' for other")]
     public void DebugSee(string type)
     {
-        if (type == "col" || type == "collider")
+        /*if (type == "col" || type == "collider")
         {
             _showCol = !_showCol;
             var cache = scene.SceneRegistry.Entities;
@@ -389,12 +376,12 @@ Enabled: {entity.IsEnabled} | Static: {entity.IsStatic} | Destroyed: {entity.IsD
             
 
         }
-
+*/
     }
 
-    private void ShowDebugFor(Entity ent, ISupportsWireframe[] supporters, Vector3 colour, bool doShow)
+    private void ShowDebugFor(Entity ent, Object[] supporters, Vector3 colour, bool doShow)
     {
-        List<WfAndTarget> list = [.. supporters.Select(c => new WfAndTarget(c, null))];
+        /*List<WfAndTarget> list = [.. supporters.Select(c => new WfAndTarget(c, null))];
         WfAndTarget[] tuples = [.. list];
         var renderers = ent.components.OfType<WireframeBoxRenderer>();
         foreach (var renderer in renderers)
@@ -418,7 +405,7 @@ Enabled: {entity.IsEnabled} | Static: {entity.IsStatic} | Destroyed: {entity.IsD
                 ent.AddComponent(r);
                 r.SetEnabled(doShow);
             }
-        }
+        }*/
     }
 
     //Meta commands
@@ -524,13 +511,15 @@ Enabled: {entity.IsEnabled} | Static: {entity.IsStatic} | Destroyed: {entity.IsD
     }
 
     [ConsoleCommand(["sceneNew"], "Creates a new scene")]
-    public string SceneNew()
+    public void SceneNew(string sceneType)
     {
-        scene.DestroyScene();
-        Program.NewScene();
-        return "";
+        var scene = GetAllClassesOf<Scene>().FirstOrDefault(t => t.Name == sceneType) ?? throw new Exception("Scene type not found");
+
+        Scene sceneInstance = (Scene)(Activator.CreateInstance(scene) ?? throw new Exception("Could not instantiate the scene"));
+        World.LoadScene(sceneInstance);
+
     }
-#endif
+
 }
 
 

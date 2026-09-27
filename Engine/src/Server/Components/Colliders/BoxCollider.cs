@@ -7,7 +7,7 @@ namespace Terr3D.Server.Components;
 /// <summary>
 /// A rotated box collider (OBB) that supports collision detection using the Separating Axis Theorem
 /// </summary>
-public class BoxCollider(Vector3 halfExtents, Vector3 centerOffset, bool isStatic = false) : Collider(isStatic), ISupportsWireframe
+public class BoxCollider(Vector3 halfExtents, Vector3 centerOffset, bool isStatic = false) : Collider(isStatic)
 {
     public Vector3 HalfExtents = halfExtents;
     public Vector3 CenterOffset = centerOffset;

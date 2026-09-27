@@ -24,5 +24,6 @@ public class ConcreteScene() : Scene()
     {
         _ = new EnvConfig(EnvConfig.BuiltinSky);
         var terrain = Entity.Instantiate(()=> new Terrain("Terrain", Worldspawn, 256f, 256));
+        _ = new GlobalGround(terrain);
     }
 }

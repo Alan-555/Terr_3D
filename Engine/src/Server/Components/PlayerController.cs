@@ -1,6 +1,5 @@
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using Terr3D.Client;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
@@ -46,21 +45,18 @@ public class PlayerController : BehaviourComponent
         //Onstage.Globals.Canvas.RenderLabel($"x|y|z {Transform}", 0);
 
         //General controls
-        if (EngineWindow.Instance.KeyboardState.IsKeyPressed(Keys.F1))
+        if (Input.KeyPressed(KeyCode.F1))
         {
             ToggleFreeCam();
         }
-        if (EngineWindow.Instance.IsKeyPressed(Keys.Escape))
-        {
-            EngineWindow.Instance.CursorState = CursorState.Normal;
-        }
+        
 
 
 
-        /*if (physics.Collider!.Intersects(new Bounds(Onstage.Globals.CurrentCamera.Transform.Position, new(0.01f, 0.01f, 0.01f))))
+        if (physics.Collider!.Intersects(new Bounds(World.Instance.ActiveCamera!.Transform.Position, new(0.01f, 0.01f, 0.01f))))
             worldModelMesh.SetEnabled(false);
         else
-            worldModelMesh.SetEnabled(true);*/
+            worldModelMesh.SetEnabled(true);
 
 
         //Other controls
@@ -96,7 +92,7 @@ public class PlayerController : BehaviourComponent
             playerCamera.SetEnabled(false);
             freeCamera.SetEnabled(true);
             isPlayerFrozen = true;
-            if (!EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.LeftControl))
+            if (!Input.KeyDown(KeyCode.LeftControl))
             {
                 freeCamera.Transform.Position = playerCamera.Transform.Position;
                 freeCamera.Transform.Rotation = playerCamera.Transform.Rotation;
@@ -104,7 +100,7 @@ public class PlayerController : BehaviourComponent
         }
         else
         {
-            if (EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.LeftControl))
+            if (Input.KeyDown(KeyCode.LeftControl))
             {
                 Transform.Position = freeCamera.Transform.Position;
             }
@@ -118,15 +114,15 @@ public class PlayerController : BehaviourComponent
     {
         //read keys
         Vector3 move = new();
-        if (EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.S))
+        if (Input.KeyDown(KeyCode.S))
             move.Z += 1;
-        if (EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.W))
+        if (Input.KeyDown(KeyCode.W))
             move.Z += -1;
-        if (EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.A))
+        if (Input.KeyDown(KeyCode.A))
             move.X += -1;
-        if (EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.D))
+        if (Input.KeyDown(KeyCode.D))
             move.X += 1;
-        if (EngineWindow.Instance.KeyboardState.IsKeyPressed(Keys.Space))
+        if (Input.KeyPressed(KeyCode.Space))
             RequestJump(dt);
 
         //transform movement vectors
@@ -137,7 +133,7 @@ public class PlayerController : BehaviourComponent
         var moveForward = move.Z * localForward.Xyz;
 
         //calculate the desired speed and direction
-        float wishSpeed = EngineWindow.Instance.KeyboardState.IsKeyDown(Keys.LeftShift) ? moveSpeed * sprintSpeedModifier : moveSpeed;
+        float wishSpeed = Input.KeyPressed(KeyCode.LeftShift) ? moveSpeed * sprintSpeedModifier : moveSpeed;
         var wishDir = moveRight + moveForward;
         if (wishDir.Length == 0)
         {
@@ -178,7 +174,7 @@ public class PlayerController : BehaviourComponent
 
         //read mouse
         Vector3 rotateInput = new();
-        var delta = EngineWindow.Instance.MouseState.Delta;
+        var delta = Input.MouseDelta;
         rotateInput.X = -delta.Y;
         rotateInput.Y = -delta.X;
 

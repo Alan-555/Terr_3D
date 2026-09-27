@@ -13,18 +13,19 @@ public static class QuadTreeBuilder
     public static QuadTreeNode Construct(Scene scene)
     {
         //if the scene is empty, return an empty leaf node
-        if(scene.Worldspawn.Children.Count == 0) return new QuadTreeNode(new(), [], []);
+        if (scene.Worldspawn.Children.Count == 0) return new QuadTreeNode(new(), [], []);
         var (worldSize, numChunks) = DecideParams(scene);
         int depth = (int)Math.Log(numChunks, 4); //assuming numChunks is divisible by four
         var halfSize = worldSize / 2f;
         var rootVolume = new Bounds(Vector3.Zero, new(halfSize));
+        rootVolume.HalfExtents.Y = 1000f;
         return Construct(scene, rootVolume, depth);
     }
 
     private static (float worldSize, int numChunks) DecideParams(Scene scene)
     {
         var ter = scene.FindEntityOfType<Terrain>();
-        if(ter != null)
+        if (ter != null)
         {
             //construct with terrain's params
             return (ter.TerrainSize, ter.NumChunks);
@@ -50,15 +51,15 @@ public static class QuadTreeBuilder
                 if (objBounds.IntersectsInfHeight(volume))
                 {
 
-                    if(obj is Renderer r)
+                    if (obj is Renderer r)
                     {
-                        if(r.rendererClass != RendererClass.RENDERER_STATIC) continue;
+                        if (r.rendererClass != RendererClass.RENDERER_STATIC) continue;
 
                         renderers.Add(r);
                     }
                     else if (obj is Collider c)
                     {
-                        if(!c.IsStatic) continue;
+                        if (!c.IsStatic) continue;
                         colliders.Add(c);
                     }
                     else
@@ -66,7 +67,7 @@ public static class QuadTreeBuilder
                         throw new InvalidOperationException($"Only Renderers and Colliders can implement {nameof(ISpatialBounds)}.");
                     }
 
-                    
+
                     if (objBounds.MaxPoint.Y > maxY)
                         maxY = objBounds.MaxPoint.Y;
                     if (objBounds.MinPoint.Y < minY)

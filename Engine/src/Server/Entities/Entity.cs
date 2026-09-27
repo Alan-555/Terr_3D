@@ -16,7 +16,7 @@ namespace Terr3D.Server.Entities;
 /// </summary>
 public abstract class Entity : IEnumerable<Entity>
 {
-    public string Name { get; set; }
+    public virtual string Name { get; set; }
 
     /// <summary>
     /// The transformation of this entity
@@ -168,6 +168,11 @@ public abstract class Entity : IEnumerable<Entity>
     {
         parent ??= Onstage.Worldspawn;
 
+        if(IsInSubtreeOf(parent, this))
+        {
+            throw new InvalidOperationException($"Cannot set {parent} as the parent of {this}. The target parent is in the subtree of the target entity!");
+        }
+
         if (Parent != null)
         {
             //we've been disowned :(
@@ -215,6 +220,18 @@ public abstract class Entity : IEnumerable<Entity>
     }
 
 
+    public bool IsInSubtreeOf(Entity target, Entity root)
+    {
+        var next = target;
+        while(next != null)
+        {
+            if(next == root) return true;
+            next = next.Parent;
+        }
+        return false;
+    }
+
+
     /// <summary>
     /// Attaches a new component to this entity
     /// </summary>
@@ -232,6 +249,7 @@ public abstract class Entity : IEnumerable<Entity>
         Onstage.SceneRegistry.RegisterComponent(component);
         return component;
     }
+
 
     public T AddComponent_<T>(T component) where T : Component
     {
@@ -256,7 +274,7 @@ public abstract class Entity : IEnumerable<Entity>
     }
 
     public void TransformUpdated() => OnTransformUpdated();
-    
+
 
     void OnTransformUpdated()
     {
@@ -286,7 +304,17 @@ public abstract class Entity : IEnumerable<Entity>
 
 
 
-    public override string ToString() => $"{Name}[{GetType()}] @ {Transform}";
+    public override string ToString() => $"{FullName}[{GetType().Name}] @ {Transform}";
+
+    public virtual string FullName
+    {
+        get
+        {
+            if (Parent != null) return $"{Parent.FullName}.{Name}";
+            else return Name;
+
+        }
+    }
 
     public virtual void OnInitialise() { }
 
@@ -303,11 +331,13 @@ public abstract class Entity : IEnumerable<Entity>
             c.Destroy();
         }
         _components.Clear();
-        foreach (var e in _children)
+        Entity[] cache = new Entity[_children.Count];
+        _children.CopyTo(cache);
+        foreach (var e in cache)
         {
             e.Destroy();
         }
-        Parent._children.Remove(this);
+        Parent?._children.Remove(this);
     }
 
     public virtual void OnDestroyed() { }
@@ -320,6 +350,55 @@ public abstract class Entity : IEnumerable<Entity>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return _children.GetEnumerator();
+    }
+
+
+    public static Entity? FindEntityByName(string name)
+    {
+        foreach (var scene in World.LoadedScenes)
+        {
+            var ent = FindEntityByName(name, scene.Worldspawn);
+            if (ent != null) return ent;
+        }
+        return null;
+    }
+
+    private static Entity? FindEntityByName(string name, Entity root)
+    {
+        if (root.Name == name) return root;
+        foreach (var child in root.Children)
+        {
+            var ent = FindEntityByName(name, child);
+            if (ent != null) return ent;
+        }
+        return null;
+    }
+
+    public static IEnumerable<Entity> GetAllEntities()
+    {
+        foreach (var scene in World.LoadedScenes)
+        {
+            foreach (var entity in CollectEntitiesIterative(scene.Worldspawn))
+            {
+                yield return entity;
+            }
+        }
+    }
+
+    private static IEnumerable<Entity> CollectEntitiesIterative(Entity root)
+    {
+        var stack = new Stack<Entity>();
+        stack.Push(root);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+            yield return current;
+            foreach (var child in current.Reverse())
+            {
+                stack.Push(child);
+            }
+        }
     }
 }
 

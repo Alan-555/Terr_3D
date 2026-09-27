@@ -7,7 +7,7 @@ namespace Terr3D.Server.Components;
 /// <summary>
 /// An axis-aligned box collider (AABB) that supports collision detection
 /// </summary>
-public class AABB_Collider(Vector3 halfExtents, Vector3 centerOffset, bool isStatic = false) : Collider(isStatic), ISupportsWireframe
+public class AABB_Collider(Vector3 halfExtents, Vector3 centerOffset, bool isStatic = false) : Collider(isStatic)
 {
     private readonly Bounds _baseAABB = new(centerOffset, halfExtents);
 

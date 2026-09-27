@@ -7,6 +7,8 @@ using Terr3D.Client.Resources;
 using Terr3D.Server.Entities;
 using Terr3D.Server.Engine;
 using Terr3D.Utils;
+using ImGuiNET;
+using Terr3D.Client.Utils;
 
 namespace Terr3D.Client;
 
@@ -19,7 +21,10 @@ public class EngineWindow : GameWindow
     public static EngineWindow Instance => _instance ?? throw new Exception("The screen was not initialised!");
     static EngineWindow? _instance;
 
+    private ImGuiController? _controller;
+
     public DateTime _startTime = DateTime.Now;
+    
 
     /// <summary>
     /// Returns the total elapsed time, since the start of the engine
@@ -31,6 +36,7 @@ public class EngineWindow : GameWindow
 
     public bool IsPaused { get; set; }
     public float TimeScale { get; set; } = 1f;
+    public bool IsPresentUI {get; set;} = false;
 
     /// <summary>
     /// The scene drawer that draws the scene
@@ -72,6 +78,8 @@ public class EngineWindow : GameWindow
     {
         base.OnLoad();
 
+        _controller = new ImGuiController(ClientSize.X, ClientSize.Y);
+
         //Initialises GL
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         GL.Enable(EnableCap.DepthTest);
@@ -94,22 +102,32 @@ public class EngineWindow : GameWindow
     {
         base.OnRenderFrame(e);
 
-        Profiler.Start(ProfilerPhase.FRAME_PREPARE);
-
-        //Clear buffers
+        //clear the buffers
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        //Render the scene
+        //render the world
         World.DrawWorld();
 
-        SwapBuffers();
+        
 
-        Profiler.EndAll();
+        _controller?.Render();
+
+        SwapBuffers();
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
         base.OnUpdateFrame(args);
+
+        
+        _controller?.Update(this, (float)args.Time);
+
+        if (IsPresentUI)
+            CursorState = CursorState.Normal;
+        else
+            CursorState = CursorState.Grabbed;
+        
+
         Profiler.Start(ProfilerPhase.ROOT);
         Profiler.Start(ProfilerPhase.SCENE_UPDATE);
 
@@ -157,12 +175,38 @@ public class EngineWindow : GameWindow
     {
         base.OnResize(e);
         GL.Viewport(0, 0, e.Width, e.Height);
+        _controller?.WindowResized(e.Width, e.Height);
         //also update the current camera
         World.Instance.ActiveCamera?.UpdateAspect(ClientSize.X, ClientSize.Y);
     }
 
+    protected override void OnTextInput(TextInputEventArgs e)
+    {
+        base.OnTextInput(e);
+        _controller?.PressChar((char)e.Unicode);
+    }
+
+    protected override void OnMouseWheel(MouseWheelEventArgs e)
+    {
+        base.OnMouseWheel(e);
+        _controller?.MouseScroll(e.Offset);
+    }
+
     protected override void OnUnload()
     {
+        _controller?.Dispose();
         base.OnUnload();
+    }
+
+    protected override void OnKeyDown(KeyboardKeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        _controller?.AddKeyEvent(e.Key, true);
+    }
+
+    protected override void OnKeyUp(KeyboardKeyEventArgs e)
+    {
+        base.OnKeyUp(e);
+        _controller?.AddKeyEvent(e.Key, false);
     }
 }

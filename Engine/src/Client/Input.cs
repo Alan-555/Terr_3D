@@ -1,3 +1,4 @@
+using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTkMouseButton = OpenTK.Windowing.GraphicsLibraryFramework.MouseButton;
 
@@ -11,17 +12,19 @@ public static class Input
     public static bool AnyMouseButton => EngineWindow.Instance.IsAnyMouseButtonDown;
 
 
-    public static bool KeyDown(KeyCode key) => EngineWindow.Instance.IsKeyDown((Keys)key);
-    public static bool KeyUp(KeyCode key) => !KeyDown(key);
-    public static bool KeyPressed(KeyCode key) => EngineWindow.Instance.IsKeyPressed((Keys)key);
+    public static bool KeyDown(KeyCode key, bool ui = false) => (ui || !EngineWindow.Instance.IsPresentUI) && EngineWindow.Instance.IsKeyDown((Keys)key);
+    public static bool KeyUp(KeyCode key, bool ui = false) => !KeyDown(key, ui);
+    public static bool KeyPressed(KeyCode key, bool ui = false) => (ui || !EngineWindow.Instance.IsPresentUI) && EngineWindow.Instance.IsKeyPressed((Keys)key);
 
-    public static bool KeyReleased(KeyCode key) => EngineWindow.Instance.IsKeyReleased((Keys)key);
+    public static bool KeyReleased(KeyCode key, bool ui = false) => (ui || !EngineWindow.Instance.IsPresentUI) && EngineWindow.Instance.IsKeyReleased((Keys)key);
 
 
-    public static bool MouseButtonDown(MouseButton button) => EngineWindow.Instance.IsMouseButtonDown((OpenTkMouseButton)button);
-    public static bool MouseButtonUp(MouseButton button) => !MouseButtonDown(button);
-    public static bool MouseButtonPressed(MouseButton button) => EngineWindow.Instance.IsMouseButtonPressed((OpenTkMouseButton)button);
-    public static bool MouseButtonReleased(MouseButton button) => EngineWindow.Instance.IsMouseButtonReleased((OpenTkMouseButton)button);
+    public static bool MouseButtonDown(MouseButton button, bool ui = false) => (ui || !EngineWindow.Instance.IsPresentUI) && EngineWindow.Instance.IsMouseButtonDown((OpenTkMouseButton)button);
+    public static bool MouseButtonUp(MouseButton button, bool ui = false) => !MouseButtonDown(button, ui);
+    public static bool MouseButtonPressed(MouseButton button, bool ui = false) => (ui || !EngineWindow.Instance.IsPresentUI) && EngineWindow.Instance.IsMouseButtonPressed((OpenTkMouseButton)button);
+    public static bool MouseButtonReleased(MouseButton button, bool ui = false) => (ui || !EngineWindow.Instance.IsPresentUI) && EngineWindow.Instance.IsMouseButtonReleased((OpenTkMouseButton)button);
+
+    public static Vector2 MouseDelta => EngineWindow.Instance.IsPresentUI ? new() : EngineWindow.Instance.MouseState.Delta;
 }
 
 

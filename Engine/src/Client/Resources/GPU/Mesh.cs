@@ -16,7 +16,7 @@ public class Mesh
     public IBO IBO;
     public VAO VAO;
 
-    public Vector3 minPoint, maxPoint, center, halfExtents;
+    public Vector3 minPoint = Vector3.PositiveInfinity, maxPoint = Vector3.NegativeInfinity, center, halfExtents;
 
     public Mesh(Vertex[] data, Triangle[] tridata)
     {

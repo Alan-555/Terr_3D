@@ -45,7 +45,7 @@ public static class ResourceManager
         Shaders.Register(ResourceIndex.Shaders.Sky, ShaderLoader.LoadSurfaceShader("Sky", CommonBehaviourFlags.USE_SKY | CommonBehaviourFlags.USE_SUN_DIR | CommonBehaviourFlags.USE_INV_PROJ_VIEW | CommonBehaviourFlags.USE_WEATHER_EFFECTS));
         Shaders.Register(ResourceIndex.Shaders.Font, ShaderLoader.LoadSurfaceShader("Font", CommonBehaviourFlags.USE_ORTHO_PROJ));
         Shaders.Register(ResourceIndex.Shaders.Volume, ShaderLoader.LoadSurfaceShader("Volume", CommonBehaviourFlags.TRANSFORM_TO_NDC | CommonBehaviourFlags.USE_CAMERA_POS | CommonBehaviourFlags.USE_ALPHA_BLEND));
-        Shaders.Register(ResourceIndex.Shaders.FlatColor, ShaderLoader.LoadSurfaceShader("FlatColor", CommonBehaviourFlags.USE_WIREFRAME));
+        Shaders.Register(ResourceIndex.Shaders.FlatColor, ShaderLoader.LoadSurfaceShader("FlatColor", CommonBehaviourFlags.USE_WIREFRAME | CommonBehaviourFlags.TRANSFORM_TO_NDC));
         Shaders.Register(ResourceIndex.Shaders.Depth, ShaderLoader.LoadSurfaceShader("Depth", CommonBehaviourFlags.USE_MODEL_MATRIX));
         Shaders.Register(ResourceIndex.Shaders.ScreenTexture, ShaderLoader.LoadSurfaceShader("ScreenText", CommonBehaviourFlags.USE_RENDER_PRIORITY | CommonBehaviourFlags.USE_ALPHA_BLEND));
         Shaders.Register(ResourceIndex.Shaders.Particle, ShaderLoader.LoadSurfaceShader("Particle", CommonBehaviourFlags.TRANSFORM_TO_NDC | CommonBehaviourFlags.USE_ALPHA_BLEND | CommonBehaviourFlags.USE_CAMERA_POS));

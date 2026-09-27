@@ -44,7 +44,7 @@ public class WorldGenerator
                     Terrain.QuadsPerChunk,
                     step,
                     (x, z) => terrain.SampleHeight(new Vector2(x, z)) + h,
-                    (x, z) => terrain.GetTerrainNormal((x, 0, z), 0.5f),
+                    (x, z) => terrain.GetTerrainNormal(new(x, z), 0.5f),
                     new(px, 0, pz)
                 );
 
