@@ -16,7 +16,7 @@ public class WorldDrawer
 
     const float ShadowDistance = 32;
 
-    const float SunDistance = 32;
+    const float SunDistance = 1024;
 
     const float SunOrthoExtension = 25;
 
@@ -103,7 +103,7 @@ public class WorldDrawer
             _skyBufferTexture = new Texture(_skyBuffer.colourTexture);
         }
 
-        var skyFeature = World.TryGetSingleton<SkyFeature>();
+        var skyFeature = World.TryGetSingleton<EnvConfig>();
         if(skyFeature == null)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -299,7 +299,7 @@ public class WorldDrawer
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_SUN_DIR))
         {
-            Vector3 sunDir = new Vector3(1f,0.5f, 0f).Normalized(); //FIXME:
+            var sunDir = World.GetSingleton<EnvConfig>().SunDir;
             shader.SetUniform("sunDir", ref sunDir);
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_CAMERA_POS))
@@ -357,7 +357,7 @@ public class WorldDrawer
             if (_skyBufferTexture != null)
                 shader.SetUniform("skyTexture", ref _skyBufferTexture, 30);
 
-            shader.SetUniformNoRef("fogDensity", 0.001f); //TODO: fog
+            shader.SetUniformNoRef("fogDensity", World.GetSingleton<EnvConfig>().FogDensity);
         }
     }
 
@@ -432,10 +432,10 @@ public class WorldDrawer
         center /= 8;
 
         //move the light space camera further away towards the sun
-        var lightPos = center + (new Vector3() * SunDistance); //FIXME:
+        var lightPos = center + (-World.GetSingleton<EnvConfig>().SunDir * SunDistance);
 
         //compute the light view matrix
-        Quaternion inverseSunRot = World.Instance.ActiveCamera?.Transform.Rotation.Inverted() ?? new();//Globals.Environment.Sun.Transform.Rotation.Inverted();
+        Quaternion inverseSunRot = World.GetSingleton<EnvConfig>().SunRotation.Inverted();
 
         Matrix4 lightRotationMatrix = Matrix4.CreateFromQuaternion(inverseSunRot);
 

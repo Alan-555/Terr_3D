@@ -144,7 +144,6 @@ vec3 Fog(vec3 finalColour) {
 void main() {
     float dayValue = (sunDir.y + 1) / 2.0;
     vec3 camDir = normalize(camPos - worldPos);
-
     //dir lighting
     vec3 sunColour = ComputeColour(camDir, sunColour, vec4(sunDir, 0), 0.75) * dayValue;
     vec3 flashColour = vec3(0.0);
@@ -160,7 +159,7 @@ void main() {
     vec3 dynamicLights = ComputeColour(camDir, plrLight) * 0.0001 + env.stormIntensity * 0.0001;
 
     float shadow = 1;
-    if(dayValue >= 10000/*0.5*/)
+    if(dayValue >= 0.5)
         shadow = max(0.25, 1 - InShadow());
     vec3 finalColour = (ambientColour + dynamicLights + sunColour * shadow + moonColour + flashColour) * texture2D(material.albedo, uv).xyz;
 

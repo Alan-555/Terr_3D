@@ -47,7 +47,7 @@ public class World
         destroyed += () => Instance.Singletons.Remove(type);
     }
 
-    public static T GetSingleton<T>() where T : SingletonComponent
+    public static T GetSingleton<T>() where T : SingletonComponent //TODO: add support for caching singletons? And remove the ability to destroy them?
     {
         return (T)Instance.Singletons[typeof(T)];
     }

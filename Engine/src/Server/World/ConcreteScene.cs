@@ -22,7 +22,7 @@ public class ConcreteScene() : Scene()
 
     public override void SpawnStaticEntities()
     {
-        _ = new SkyFeature();
+        _ = new EnvConfig(EnvConfig.BuiltinSky);
         var terrain = Entity.Instantiate(()=> new Terrain("Terrain", Worldspawn, 256f, 256));
     }
 }
