@@ -34,7 +34,7 @@ public class PlayerController : BehaviourComponent
 
     bool isPlayerFrozen = false;
 
-    public static bool debugCull = true;
+    public static bool debugCull = false;
 
     public Camera PlayerCam => playerCamera;
     public PlayerController LocalPlayer => this;

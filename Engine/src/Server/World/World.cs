@@ -12,7 +12,7 @@ public class World
     public Camera? ActiveCamera { get; set; }
     private readonly List<Scene> _loadedScenes = [];
 
-    private readonly Scene _persistentScene = new EmptyScene(0, 0);
+    private readonly Scene _persistentScene = new EmptyScene();
     private readonly Dictionary<Type, SingletonComponent> Singletons = [];
 
     public readonly SpacePartitioner _partitioner;
@@ -36,14 +36,12 @@ public class World
     public static void Create() => _ = new World();
 
 
-    public static void RegisterSingleton(SingletonComponent singleton, Action destroyed)
+    public static void RegisterSingleton(SingletonComponent singleton, Action destroyed, Component[] dependencies)
     {
         Type type = singleton.GetType();
         if (Instance.Singletons.ContainsKey(type))
             throw new InvalidOperationException($"Singleton of type {type.Name} already registered.");
         Instance.Singletons[type] = singleton;
-        List<Component> dependencies = [];
-        foreach (var d in singleton.Dependencies) dependencies.Add((Component)Activator.CreateInstance(d)!);
         Entity.InstantiateEmptyWith(type.Name, Instance._persistentScene.Worldspawn, false, [singleton, .. dependencies]);
 
         destroyed += () => Instance.Singletons.Remove(type);
@@ -52,6 +50,11 @@ public class World
     public static T GetSingleton<T>() where T : SingletonComponent
     {
         return (T)Instance.Singletons[typeof(T)];
+    }
+
+    public static T? TryGetSingleton<T>() where T : SingletonComponent
+    {
+        return (T?)Instance.Singletons.GetValueOrDefault(typeof(T));
     }
 
     public static void LoadScene(Scene scene)

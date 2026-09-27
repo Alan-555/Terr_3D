@@ -94,7 +94,6 @@ public class WorldDrawer
 
     void DrawSky(ref MatrixPackage mat)
     {
-        /* FIXME:
         var size = EngineWindow.Instance.ClientSize;
         //update size
         if (_skyBuffer == null || _skyBuffer.Width != size.X || _skyBuffer.Height != size.Y)
@@ -104,17 +103,22 @@ public class WorldDrawer
             _skyBufferTexture = new Texture(_skyBuffer.colourTexture);
         }
 
-        var skyRenderer = Globals.Environment.Sky;
+        var skyFeature = World.TryGetSingleton<SkyFeature>();
+        if(skyFeature == null)
+        {
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            return;
+        }
 
         //bind the sky colour buffer
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, (int)_skyBuffer);
         GL.Viewport(0, 0, _skyBuffer.Width, _skyBuffer.Height);
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        skyRenderer.ShaderProgram.Use();
+        skyFeature.SkyRenderer.ShaderProgram.Use();
 
         //dispatch the sky shader
-        RenderShader(skyRenderer, skyRenderer.ShaderProgram, ref mat, true);
+        RenderShader(skyFeature.SkyRenderer, skyFeature.SkyRenderer.ShaderProgram, ref mat, true);
 
         //use blit to render it as the background
         GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, (int)_skyBuffer);
@@ -123,7 +127,7 @@ public class WorldDrawer
 
         //cleanup
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-        GL.Viewport(0, 0, size.X, size.Y);*/
+        GL.Viewport(0, 0, size.X, size.Y);
     }
 
     //Renders the scene into a depth texture used for shadow mapping
@@ -295,7 +299,7 @@ public class WorldDrawer
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_SUN_DIR))
         {
-            Vector3 sunDir = new(); //FIXME:
+            Vector3 sunDir = new Vector3(1f,0.5f, 0f).Normalized(); //FIXME:
             shader.SetUniform("sunDir", ref sunDir);
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_CAMERA_POS))
@@ -352,8 +356,7 @@ public class WorldDrawer
         {
             if (_skyBufferTexture != null)
                 shader.SetUniform("skyTexture", ref _skyBufferTexture, 30);
-            var half = 50f; //FIXME:
-            shader.SetUniform("worldHalfExtents", ref half);
+
             shader.SetUniformNoRef("fogDensity", 0.001f); //TODO: fog
         }
     }

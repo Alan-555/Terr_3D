@@ -24,8 +24,15 @@ public class Terrain : Entity
     public const int QuadsPerChunk = 26; //how may quads (per axis) do we use? This is arbitrary and good ballance has to be made. More chunks = more work for the CPU to cull them, less chunks = CPU can't cull so GPU will have to render a lot of triangles
     public const int QuadsPerMeter = 2; //from the assignment. Sampling each 0.5meters means we have two quads per meter
 
+    /// <summary>
+    /// The terrain size per axis (since terrains are square)
+    /// </summary>
     public float TerrainSize { get; private init; }
-    public int NumChunks {get; private init;}
+
+    /// <summary>
+    /// Total number of chunks (per both axes)
+    /// </summary>
+    public int NumChunks { get; private init; }
 
     public Vector3 Pivot => new(-TerrainSize / 2f, 0, -TerrainSize / 2f);
 
@@ -39,7 +46,7 @@ public class Terrain : Entity
         _heightMap = new(heightMapSize, heightMapSize);
         _heightMap.Noise();
         Diagnostics.Info("Begin terrain generation...");
-        
+
         //calculate the number of total chunks (per axis)
         var targetNumChunks = (int)Math.Ceiling(TerrainSize * QuadsPerMeter / QuadsPerChunk);
         NumChunks = (int)MathF.Sqrt(WorldGeneratorHelpers.FindPowerOfFour(targetNumChunks * targetNumChunks));
@@ -146,7 +153,10 @@ class HeighMap
 
     private Vector2 FromNormalised(float x, float z) => new(float.Clamp(x, 0f, 1f) * (SizeX - 1), float.Clamp(z, 0f, 1f) * (SizeZ - 1));
 
+    private Vector2 ToNormalised(int x, int z) => new(x / (SizeX + 1f), z / (SizeZ + 1f));
+
     public float GetActualHeightAt(int x, int z) => map[x + z * SizeX];
+    private float SetHeightAt(int x, int z, float height) => map[x + z * SizeX] = height;
 
     public float Sample(Vector3 pos) => Sample(pos.X, pos.Z);
     public float Sample(Vector2 pos) => Sample(pos.X, pos.Y);
@@ -187,12 +197,36 @@ class HeighMap
 
 
     public void Noise()
+{
+    List<(Vector2 pos, float height)> points = [];
+    for (int i = 0; i < 10; i++)
     {
-        float height = 0f;
-        for(int i = 0; i < map.Length; i++)
+        points.Add((new Vector2(RandHelper.RandFloatNormalised(), RandHelper.RandFloatNormalised()), RandHelper.RandFloat(0.01f, 100f)));
+    }
+    
+    for (int x = 0; x < SizeX; x++)
+    {
+        for (int z = 0; z < SizeZ; z++)
         {
-            height += RandHelper.RandFloat(-0.1f, 0.1f);
-            map[i] = height;
+            var pos = ToNormalised(x, z);
+            float sumHeight = 0f;
+            float sumWeight = 0f; // Track total weight for proper interpolation
+            
+            foreach (var point in points)
+            {
+                var dist = Vector2.Distance(pos, point.pos);
+                
+                // Clamp distance to prevent division by zero (extreme spikes)
+                dist = dist < 0.01f ? 0.01f : dist; 
+                
+                float weight = 1f / (dist * dist);
+                sumHeight += point.height * weight;
+                sumWeight += weight;
+            }
+            
+            // Final height is the weighted average, not divided by point count
+            SetHeightAt(x, z, sumHeight / sumWeight);
         }
     }
+}
 }

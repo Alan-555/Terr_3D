@@ -5,12 +5,21 @@ using Terr3D.Server.Engine;
 namespace Terr3D.Server.Components;
 public abstract class SingletonComponent : BehaviourComponent
 {
-    public ReadOnlyCollection<Type> Dependencies => _dependencies.AsReadOnly();
-    private Type[] _dependencies;
-    protected SingletonComponent(params Type[] dependencies)
+    protected SingletonComponent(params Type[] types)
     {
-        _dependencies = dependencies;
-        World.RegisterSingleton(this, _destroyed!);
+        List<Component> dependencies = [];
+        foreach (var d in types) dependencies.Add((Component)Activator.CreateInstance(d)!);
+        World.RegisterSingleton(this, _destroyed!, [.. dependencies]);
+    }
+
+    protected SingletonComponent(params Component[] dependencies)
+    {
+        World.RegisterSingleton(this, _destroyed!, dependencies);
+    }
+
+    protected SingletonComponent()
+    {
+        World.RegisterSingleton(this, _destroyed!, []);
     }
 
     public event Action? _destroyed;

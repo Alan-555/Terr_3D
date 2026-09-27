@@ -50,8 +50,6 @@ const vec3 nightAmbientColour = vec3(0.03, 0.05, 0.13);
 
 uniform float fogDensity;
 
-const float mapBorder = 50;
-uniform float worldHalfExtents;
 
 //computes a colour for a dir or point light
 vec3 ComputeColour(vec3 camDir, vec3 _lightColour, vec4 _lightPos, float _lightIntensity) {
@@ -118,7 +116,6 @@ float InShadow() {
         }
     }
     shadow /= 9.0;
-
     return shadow;
 
 }
@@ -126,36 +123,17 @@ float InShadow() {
 vec3 Fog(vec3 finalColour) {
     if(fogDensity == 0)
         return finalColour;
-    float camera_dx = max(0.0, abs(camPos.x) - (worldHalfExtents - mapBorder));
-    float camera_dz = max(0.0, abs(camPos.z) - (worldHalfExtents - mapBorder));
-    float camera_fromInner = sqrt(camera_dx * camera_dx + camera_dz * camera_dz);
-
-    //how intense should the void effect be
-    float voidIntensity = clamp(camera_fromInner / mapBorder, 0.0, 1.0);
-    voidIntensity = 1 / pow(1.0 - voidIntensity, 0.5);
 
     //compute the fog distance to the current fragment
     float fogDistance = length(camPos - worldPos);
 
     //compute visibility with exponential falloff
-    float visibility = exp(-fogDensity * fogDistance * voidIntensity);
+    float visibility = exp(-fogDensity * fogDistance);
 
-    //distance to the void
-    float dx = max(0.0, abs(worldPos.x) - (worldHalfExtents - mapBorder));
-    float dz = max(0.0, abs(worldPos.z) - (worldHalfExtents - mapBorder));
+    if(false) visibility = 1.0;
 
-    float distFromInner = sqrt(dx * dx + dz * dz);
-    float edgeDistance = 1.0 - clamp(distFromInner / mapBorder, 0.0, 1.0);
-
-    float edgeFactor = smoothstep(0.0, 0.15, edgeDistance);
-
-    //change visibility depending on the edgeFactor
-    visibility *= edgeFactor;
-
-    //convert screen space uv to texture space uv
     vec2 screenUV = gl_FragCoord.xy / textureSize(skyTexture, 0);
 
-    //sample the sky colour at that pixel
     vec3 skyFogColour = texture(skyTexture, screenUV).rgb;
 
     //mix it according to the visibility
@@ -182,7 +160,7 @@ void main() {
     vec3 dynamicLights = ComputeColour(camDir, plrLight) * 0.0001 + env.stormIntensity * 0.0001;
 
     float shadow = 1;
-    if(dayValue >= 0.5)
+    if(dayValue >= 10000/*0.5*/)
         shadow = max(0.25, 1 - InShadow());
     vec3 finalColour = (ambientColour + dynamicLights + sunColour * shadow + moonColour + flashColour) * texture2D(material.albedo, uv).xyz;
 

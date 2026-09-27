@@ -98,9 +98,12 @@ vec3 Lighting(vec3 viewDirNormalised) {
 
 void main() {
     vec3 viewDirNormalised = normalize(viewDir);
+    viewDirNormalised.y = max(viewDirNormalised.y, 0.0);
+    viewDirNormalised = normalize(viewDirNormalised);
     vec3 rotatedDir = viewDirNormalised * getRotationMatrix(sunDir);
     //normalise to [0,1]
     rotatedDir = (rotatedDir + 1) / 2.0;
+
 
     //normalise to [0,1]
     float dayValue = (sunDir.y + 1) / 2.0;

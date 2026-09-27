@@ -32,7 +32,6 @@ class Program
         World.LoadScene(scene);
 
         //once client and GL context is ready, we initialise the rest
-        scene.InitWorld();
         if(isMenu)
             scene.InitMainMenu();
 

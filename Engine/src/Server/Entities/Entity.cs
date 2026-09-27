@@ -7,13 +7,14 @@ using Terr3D.Server.Components;
 using Terr3D.Server.Shared;
 using Terr3D.Server.Engine;
 using Terr3D.Utils;
+using System.Collections;
 
 namespace Terr3D.Server.Entities;
 
 /// <summary>
 /// An entity that can exist in the word. Implements its own custom logic and borrows behaviour from attached components
 /// </summary>
-public abstract class Entity
+public abstract class Entity : IEnumerable<Entity>
 {
     public string Name { get; set; }
 
@@ -310,6 +311,16 @@ public abstract class Entity
     }
 
     public virtual void OnDestroyed() { }
+
+    public IEnumerator<Entity> GetEnumerator()
+    {
+        return _children.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return _children.GetEnumerator();
+    }
 }
 
 public static class EntityLifecycle

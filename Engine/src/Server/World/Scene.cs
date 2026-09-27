@@ -1,9 +1,4 @@
-using OpenTK.Mathematics;
-using Terr3D.Client;
-using Terr3D.Client.Resources;
-using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
-using Terr3D.Server.Shared;
 using Terr3D.Utils;
 
 namespace Terr3D.Server.Engine;
@@ -15,24 +10,17 @@ public abstract class Scene
 
     public QuadTreeNode SceneNode;
 
-    public Scene(float worldSize, int numChunks)
+    public Scene()
     {
         Worldspawn = new(this);
         SpawnStaticEntities();
-        SceneNode = QuadTreeBuilder.Construct(this, worldSize, numChunks);
+        SceneNode = QuadTreeBuilder.Construct(this);
         SpawnDynamicEntities();
     }
     
     public abstract void SpawnStaticEntities();
     public abstract void SpawnDynamicEntities();
 
-    /// <summary>
-    /// Initialises the world
-    /// </summary>
-    public void InitWorld()
-    {
-        
-    }
 
     public void InitMainMenu()
     {
@@ -95,10 +83,25 @@ public abstract class Scene
         }*/
 
     }
+
+    
+
+    public T? FindEntityOfType<T>() where T : Entity
+    {
+        foreach(var child in Worldspawn)
+        {
+            if(child is T c)
+            {
+                return c;
+            }
+        }
+
+        return null;
+    }
 }
 
 
-public class EmptyScene(float worldSize, int numChunks) : Scene(worldSize, numChunks)
+public class EmptyScene() : Scene()
 {
     public override void SpawnDynamicEntities(){}
     public override void SpawnStaticEntities(){}

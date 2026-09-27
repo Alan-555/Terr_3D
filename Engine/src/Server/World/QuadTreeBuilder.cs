@@ -10,12 +10,27 @@ namespace Terr3D.Server.Engine;
 public static class QuadTreeBuilder
 {
 
-    public static QuadTreeNode Construct(Scene scene, float worldSize, int numChunks)
+    public static QuadTreeNode Construct(Scene scene)
     {
+        //if the scene is empty, return an empty leaf node
+        if(scene.Worldspawn.Children.Count == 0) return new QuadTreeNode(new(), [], []);
+        var (worldSize, numChunks) = DecideParams(scene);
         int depth = (int)Math.Log(numChunks, 4); //assuming numChunks is divisible by four
         var halfSize = worldSize / 2f;
         var rootVolume = new Bounds(Vector3.Zero, new(halfSize));
         return Construct(scene, rootVolume, depth);
+    }
+
+    private static (float worldSize, int numChunks) DecideParams(Scene scene)
+    {
+        var ter = scene.FindEntityOfType<Terrain>();
+        if(ter != null)
+        {
+            //construct with terrain's params
+            return (ter.TerrainSize, ter.NumChunks);
+        }
+        //TODO: finish
+        throw new NotImplementedException();
     }
 
     private static QuadTreeNode Construct(Scene scene, Bounds volume, int depth)
