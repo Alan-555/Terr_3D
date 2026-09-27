@@ -27,7 +27,7 @@ public class Environment : BehaviourComponent
 
     public Environment Weather => this;
 
-    public EnvInfo CurrentEnv => _currentEnvironment;
+    //public EnvInfo CurrentEnv => _currentEnvironment;
 
 
     private EnvInfo _currentEnvironment = new()
@@ -218,7 +218,7 @@ public class Environment : BehaviourComponent
     }
 }
 
-public struct EnvInfo
+ struct EnvInfo
 {
     public float fogDensity;
 
