@@ -48,7 +48,7 @@ public class WorldDrawer
     /// </summary>
     public void RenderWorld()
     {
-        var cam = World.Instance.ActiveCamera;
+        var cam = World.ActiveCamera;
         if (cam == null) return;
 
         //cache matrices
@@ -300,7 +300,7 @@ public class WorldDrawer
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_CAMERA_POS))
         {
-            Vector3 camPos = World.Instance.ActiveCamera?.Transform.Position ?? new Vector3();
+            Vector3 camPos = World.ActiveCamera?.Transform.Position ?? new Vector3();
             shader.SetUniform("camPos", ref camPos);
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_ALPHA_BLEND))
@@ -316,7 +316,7 @@ public class WorldDrawer
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_DYNAMIC_LIGHTS))
         {
-            var camPos = new Vector4(World.Instance.ActiveCamera?.Transform.Position ?? new Vector3(), 1f);
+            var camPos = new Vector4(World.ActiveCamera?.Transform.Position ?? new Vector3(), 1f);
             shader.SetUniform("plrLight.pos", ref camPos);
             var clr = new Vector3(245, 186, 69) / 255f;
             shader.SetUniform("plrLight.colour", ref clr);
@@ -333,7 +333,7 @@ public class WorldDrawer
 
             shader.SetUniform("model", ref modelMatrix);
 
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+            GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_RENDER_PRIORITY))
         {
@@ -377,7 +377,7 @@ public class WorldDrawer
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_WIREFRAME))
         {
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+            GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
         }
         if (shader.behaviourFlags.HasFlag(CommonBehaviourFlags.USE_RENDER_PRIORITY))
         {
@@ -388,7 +388,7 @@ public class WorldDrawer
     }
 
     /// <summary>
-    /// Calculate the light matrix. This is a matrix that transforms worldspace coordinates into light space coordinates
+    /// Calculate the light matrix. This is a matrix that transforms world space coordinates into light space coordinates
     /// </summary>
     /// <param name="viewProjMatrix">The current camera's view-projection matrix</param>
     /// <returns></returns>

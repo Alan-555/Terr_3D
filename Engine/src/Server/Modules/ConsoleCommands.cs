@@ -333,7 +333,7 @@ public class DebugConsole
     {
         var e = GetEntity(name) ?? throw new Exception("No such entity");
         var c = e.GetComponent<Camera>() ?? throw new Exception("This entity has no camera!");
-        World.Instance.ActiveCamera = c;
+        World.ActiveCamera = c;
 
     }
 

@@ -13,7 +13,7 @@ namespace Terr3D.Server.Components;
 public class FreeCameraController : BehaviourComponent
 {
     [Dependency]
-    public Camera camera;
+    public Camera camera = null!;
 
     float mouseSensitivity = 0.015f;
 

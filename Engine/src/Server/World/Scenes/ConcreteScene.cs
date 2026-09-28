@@ -15,7 +15,7 @@ public class ConcreteScene() : Scene()
         
         var plr = Entity.Instantiate(()=> new Player("Player", Worldspawn));
 
-        World.Instance.ActiveCamera = plr.Children[0].GetComponent<Camera>();
+        World.ActiveCamera = plr.Children[0].GetComponent<Camera>();
 
         Diagnostics.Info("Scene init done");
     }

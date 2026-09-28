@@ -276,10 +276,9 @@ public abstract class Entity : IEnumerable<Entity>
         return component;
     }
 
-    public void RemoveComponent(Component component)
+    internal void RemoveComponent(Component component)
     {
         _components.Remove(component);
-        component.Destroy();
     }
 
 
@@ -357,11 +356,12 @@ public abstract class Entity : IEnumerable<Entity>
     {
         IsDestroyed = true;
         OnDestroyed();
-        foreach (var c in Components)
+        Component[] compCache = new Component[_components.Count];
+        _components.CopyTo(compCache);
+        foreach (var c in compCache)
         {
             c.Destroy();
         }
-        _components.Clear();
         Entity[] cache = new Entity[_children.Count];
         _children.CopyTo(cache);
         foreach (var e in cache)
@@ -369,6 +369,7 @@ public abstract class Entity : IEnumerable<Entity>
             e.Destroy();
         }
         Parent?._children.Remove(this);
+        Parent = null!;
     }
 
     protected virtual void OnDestroyed() { }

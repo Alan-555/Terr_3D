@@ -102,10 +102,10 @@ public static class QuadTreeBuilder
         var quadrant3 = new Bounds(new(left, 0, near), quarterExtents);
         var quadrant4 = new Bounds(new(right, 0, near), quarterExtents);
 
-        node.children[0] = Construct(scene, quadrant1, depth - 1);
-        node.children[1] = Construct(scene, quadrant2, depth - 1);
-        node.children[2] = Construct(scene, quadrant3, depth - 1);
-        node.children[3] = Construct(scene, quadrant4, depth - 1);
+        node.children![0] = Construct(scene, quadrant1, depth - 1);
+        node.children![1] = Construct(scene, quadrant2, depth - 1);
+        node.children![2] = Construct(scene, quadrant3, depth - 1);
+        node.children![3] = Construct(scene, quadrant4, depth - 1);
 
         return node;
 
@@ -118,7 +118,7 @@ public class QuadTreeNode
 {
     public readonly Bounds volume;
     public readonly List<QuadTreeNode>? subTrees;
-    public QuadTreeNode[] children;
+    public QuadTreeNode[]? children;
     public readonly Renderer[]? renderers = null;
     public readonly Collider[]? colliders = null;
     public readonly bool isLeaf;

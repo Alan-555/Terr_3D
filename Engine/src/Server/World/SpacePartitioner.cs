@@ -89,7 +89,7 @@ public class SpacePartitioner
             (QuadTreeNode node, float dist)[] childDistances = new (QuadTreeNode, float)[4];
             for (int i = 0; i < 4; i++)
             {
-                if (node.children[i].volume.Intersects(ray, out float d))
+                if (node.children![i].volume.Intersects(ray, out float d))
                     childDistances[i] = (node.children[i], d);
                 else
                     childDistances[i] = (node.children[i], float.MaxValue);
@@ -145,7 +145,7 @@ public class SpacePartitioner
 
         //we are not sure. Keep searching
 
-        foreach (var child in node.children)
+        foreach (var child in node.children!)
         {
             QueryFrustum(viewProjMatrix, renderers, child);
         }
@@ -171,7 +171,7 @@ public class SpacePartitioner
         }
 
         //Descend the tree
-        foreach (var child in node.children)
+        foreach (var child in node.children!)
         {
             QueryCollision(queryVolume, results, child);
         }
@@ -186,7 +186,7 @@ public class SpacePartitioner
             return;
         }
 
-        foreach (var child in node.children)
+        foreach (var child in node.children!)
         {
             AddAllLeafs(renderers, child);
         }

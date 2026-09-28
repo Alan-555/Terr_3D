@@ -13,7 +13,7 @@ public abstract class Component
     /// <summary>
     /// The entity this component is bound to
     /// </summary>
-    public Entities.Entity Entity { get; private set; }
+    public Entities.Entity Entity { get; private set; } = null!;
 
     /// <summary>
     /// Weather this component has been destroyed

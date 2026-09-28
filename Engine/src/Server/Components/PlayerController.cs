@@ -16,19 +16,19 @@ public class PlayerController : BehaviourComponent
 {
     
     [Dependency]
-    public Camera playerCamera;
-    public FreeCameraController freeCamera;
+    public Camera playerCamera = null!;
+    public FreeCameraController? freeCamera;
 
     [Dependency]
-    public Physics physics;
+    public Physics physics = null!;
 
     [Dependency]
-    public Renderer worldModelMesh;
+    public Renderer worldModelMesh = null!;
 
     float mouseSensitivity = 0.015f;
 
     float acceleration = 5;
-    float moveSpeed = 9.1f; //assuming 1 doom map unit is one meter
+    float moveSpeed = 9.1f;
     float sprintSpeedModifier = Program.DEBUG_FLAG ? 3 : 1.5f;
 
     bool isPlayerFrozen = false;
@@ -53,7 +53,7 @@ public class PlayerController : BehaviourComponent
 
 
 
-        if (physics.Collider!.Intersects(new Bounds(World.Instance.ActiveCamera!.Transform.Position, new(0.01f, 0.01f, 0.01f))))
+        if (physics.Collider!.Intersects(new Bounds(World.ActiveCamera!.Transform.Position, new(0.01f, 0.01f, 0.01f))))
             worldModelMesh.SetEnabled(false);
         else
             worldModelMesh.SetEnabled(true);
@@ -82,11 +82,11 @@ public class PlayerController : BehaviourComponent
 
     void ToggleFreeCam()
     {
-
+        if(freeCamera == null) return;
         //Which camera to enable?
-        bool toEnableFreeCam = World.Instance.ActiveCamera == playerCamera;
+        bool toEnableFreeCam = World.ActiveCamera == playerCamera;
         var newCam = toEnableFreeCam ? freeCamera.camera : playerCamera;
-        World.Instance.ActiveCamera = newCam;
+        World.ActiveCamera = newCam;
         if (toEnableFreeCam)
         {
             playerCamera.SetEnabled(false);

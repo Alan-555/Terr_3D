@@ -177,7 +177,7 @@ public class EngineWindow : GameWindow
         GL.Viewport(0, 0, e.Width, e.Height);
         _controller?.WindowResized(e.Width, e.Height);
         //also update the current camera
-        World.Instance.ActiveCamera?.UpdateAspect(ClientSize.X, ClientSize.Y);
+        World.ActiveCamera?.UpdateAspect(ClientSize.X, ClientSize.Y);
     }
 
     protected override void OnTextInput(TextInputEventArgs e)
