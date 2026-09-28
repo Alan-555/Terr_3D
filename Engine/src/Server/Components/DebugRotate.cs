@@ -5,7 +5,7 @@ namespace Terr3D.Server.Components;
 
 public class DebugRotate : BehaviourComponent
 {
-    public override void Update(float dt)
+    protected override void OnUpdate(float dt)
     {
         Transform.Rotation = Quaternion.FromAxisAngle(Vector3.UnitY, dt) * Transform.Rotation;
     }

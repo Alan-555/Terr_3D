@@ -21,7 +21,7 @@ public class FreeCameraController : BehaviourComponent
     float sprintSpeedModifier = 10;
 
 
-    public override void Update(float dt)
+    protected override void OnUpdate(float dt)
     {
         Move(dt);
         Turn(dt);

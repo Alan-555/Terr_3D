@@ -18,7 +18,7 @@ public class ConsoleWindow() : SingletonComponent()
 
     private DebugConsole _debugConsole;
 
-    public override void Update(float dt)
+    protected override void OnUpdate(float dt)
     {
         if (_consoleActive)
             Draw("Terr3D Console");

@@ -48,7 +48,7 @@ public class Player : Entity
 
     }
 
-    public override void OnInitialise()
+    protected override void OnInitialise()
     {
         if(World.TryGetSingleton<PlayerCamera>() == null)
             _ = new PlayerCamera(GetComponent<PlayerController>()!.playerCamera);

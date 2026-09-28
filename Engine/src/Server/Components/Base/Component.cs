@@ -1,4 +1,5 @@
 using Terr3D.Server.Shared;
+using Terr3D.Utils;
 
 namespace Terr3D.Server.Components;
 
@@ -24,6 +25,9 @@ public abstract class Component
     /// </summary>
     public Entities.Transform Transform => Entity.Transform;
 
+    /// <summary>
+    /// A shortcut to the entity's Onstage
+    /// </summary>
     public Engine.Scene Onstage => Entity.Onstage;
 
 
@@ -33,12 +37,16 @@ public abstract class Component
     public bool IsEnabled => isEnabled;
     bool isEnabled = true;
 
+    private bool _wasInitialised = false;
+
     /// <summary>
     /// Changes the components enabled state
     /// </summary>
     /// <param name="state">New state</param>
     public void SetEnabled(bool state)
     {
+        if(state == isEnabled) return;
+
         isEnabled = state;
         if (state)
             OnEnable();
@@ -50,19 +58,37 @@ public abstract class Component
     /// Bind this component to an entity. This should only be called once!
     /// </summary>
     /// <param name="entity">Our entity</param>
-    public void Bind(Entities.Entity entity)
+    internal void Bind(Entities.Entity entity)
     {
         Entity = entity;
     }
 
+    /// <summary>
+    /// Destroys the component by removing it from the entity
+    /// </summary>
     public void Destroy()
     {
+        if (IsDestroyed)
+        {
+            Diagnostics.Warn($"Destroying an already destroyed component {this}");
+            return;
+        }
         IsDestroyed = true;
         Entity.Onstage.SceneRegistry.UnregisterComponent(this);
+        Entity.RemoveComponent(this);
         OnDestroyed();
     }
 
-    public void Initialise() => OnInitialise();
+    internal void Initialise()
+    {
+        if (_wasInitialised)
+        {
+            Diagnostics.Warn($"Component {this} was already initialised!");
+            return;
+        }
+        _wasInitialised = true;
+        OnInitialise();
+    }
 
     /// <summary>
     /// Called once the component sits on an Entity and all dependencies are resolved
@@ -75,7 +101,7 @@ public abstract class Component
     protected virtual void OnEnable() { }
 
     /// <summary>
-    /// Called when the component has been disabled
+    /// Called when the component has been disabled (and hada been previously enabled)
     /// </summary>
     protected virtual void OnDisable() { }
 
@@ -84,13 +110,15 @@ public abstract class Component
     /// </summary>
     protected virtual void OnDestroyed() { }
 
-
-    public void TransformUpdated() => OnTransformUpdate();
+    internal void TransformUpdated() => OnTransformUpdate();
 
     /// <summary>
     /// Called when the entity this component is attached to moves in world-space
     /// </summary>
     protected virtual void OnTransformUpdate() { }
+
+    public override string ToString() => $"{GetType().Name} on {Entity}";
+
 
 }
 

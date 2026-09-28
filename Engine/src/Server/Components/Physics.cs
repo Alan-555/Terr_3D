@@ -59,7 +59,7 @@ public class Physics : BehaviourComponent
         _velocity += pushVector;
     }
 
-    public override void Update(float dt)
+    protected override void OnUpdate(float dt)
     {
         if(Program.DEBUG_FLAG)
             DebugControls(dt);

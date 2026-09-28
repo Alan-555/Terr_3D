@@ -16,6 +16,9 @@ namespace Terr3D.Server.Entities;
 /// </summary>
 public abstract class Entity : IEnumerable<Entity>
 {
+    /// <summary>
+    /// The name of this entity in the hierarchy
+    /// </summary>
     public virtual string Name { get; set; }
 
     /// <summary>
@@ -33,43 +36,62 @@ public abstract class Entity : IEnumerable<Entity>
     /// </summary>
     public bool IsStatic { get; private set; }
 
+
     /// <summary>
     /// List of all attached components
     /// </summary>
     public ReadOnlyCollection<Component> Components => _components.AsReadOnly();
-    public List<Component> _components = [];
+    private List<Component> _components = [];
+
 
     /// <summary>
     /// The Parent of this entity
     /// </summary>
-    public Entity Parent { get; private set; }
+    public Entity Parent { get; private set; } = null!;
+
 
     /// <summary>
     /// List of its children
     /// </summary>
+    public ReadOnlyCollection<Entity> Children => _children.AsReadOnly();
     private readonly List<Entity> _children = [];
 
-
-    public ReadOnlyCollection<Entity> Children => _children.AsReadOnly();
-
-
+    /// <summary>
+    /// Whether this entity is enabled or not
+    /// </summary>
     public bool IsEnabled => isEnabled;
-    bool isEnabled = true;
+    private bool isEnabled = true;
 
+    /// <summary>
+    /// Whether this entity has been initialised
+    /// </summary>
+    private bool _wasInitialised = false;
 
-    private Scene _currentScene;
+    /// <summary>
+    /// The current scene this entity is bound to
+    /// </summary>
     public Scene Onstage => _currentScene;
+
+    /// <summary>
+    /// The cached current scene, which never changes
+    /// </summary>
+    private Scene _currentScene = null!;
 
 
     private static long entId = 0;
     private static long staticEntId = 0;
 
-    private long NextEntId => this.IsStatic ? staticEntId++ : entId++;
+    /// <summary>
+    /// Returns the next available entity ID
+    /// </summary>
+    private long NextEntId => IsStatic ? staticEntId++ : entId++;
 
+    /// <summary>
+    /// An event that is invoked when the parent changes
+    /// </summary>
+    internal event Action? OnParentChanged;
 
-    public event Action OnParentChanged;
-
-    public Entity(string name, Entity parent, bool isStatic = false)
+    public Entity(string name, Entity parent, bool isStatic = false) //TODO: resolve the isStatic field automatically (only give it to entites spawned in the static scene section)
     {
         if (name == "")
         {
@@ -97,26 +119,64 @@ public abstract class Entity : IEnumerable<Entity>
         CacheWorldspawn();
     }
 
-    public void InstantiateEmptyChild(string name) => InstantiateEmpty(name, this, IsStatic);
+    #region Utils and props
 
-
-    public static EmptyEntity InstantiateEmpty(string name, Entity parent, bool isStatic = false)
+    private void CacheWorldspawn()
     {
-        return Instantiate(() => new EmptyEntity(name, parent, isStatic));
+        var parent = this;
+        while (parent.Parent != null)
+        {
+            parent = parent.Parent;
+        }
+        _currentScene = ((Worldspawn)parent).Scene;
     }
 
-    public static EmptyEntity InstantiateEmptyWith(string name, Entity parent, bool isStatic, params Component[] components)
-    {
-        return Instantiate(() => (EmptyEntity)new EmptyEntity(name, parent, isStatic).WithComponents(components));
+    public override string ToString() => $"{FullName}[{GetType().Name}] @ {Transform}";
 
+    public virtual string FullName
+    {
+        get
+        {
+            if (Parent != null) return $"{Parent.FullName}.{Name}";
+            else return Name;
+
+        }
     }
 
-    public static T Instantiate<T>(Func<T> factory) where T : Entity
+
+    public IEnumerator<Entity> GetEnumerator()
     {
-        T entity = factory();
-        EntityLifecycle.InitialiseSubtree(entity);
-        return entity;
+        return _children.GetEnumerator();
     }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return _children.GetEnumerator();
+    }
+
+    public void SetParent(Entity? parent)
+    {
+        parent ??= Onstage.Worldspawn;
+
+        if (IsInSubtreeOf(parent, this))
+        {
+            throw new InvalidOperationException($"Cannot set {parent} as the parent of {this}. The target parent is in the subtree of the target entity!");
+        }
+
+        if (Parent != null)
+        {
+            //we've been disowned :(
+            Parent._children.Remove(this);
+        }
+
+        Parent = parent;
+        Parent._children.Add(this);
+        OnParentChanged?.Invoke();
+    }
+
+    #endregion
+
+    #region  Components
 
     private static readonly Dictionary<Type, FieldInfo[]> _dependencyFieldCache = new();
 
@@ -164,35 +224,7 @@ public abstract class Entity : IEnumerable<Entity>
         }
     }
 
-    public void SetParent(Entity? parent)
-    {
-        parent ??= Onstage.Worldspawn;
 
-        if(IsInSubtreeOf(parent, this))
-        {
-            throw new InvalidOperationException($"Cannot set {parent} as the parent of {this}. The target parent is in the subtree of the target entity!");
-        }
-
-        if (Parent != null)
-        {
-            //we've been disowned :(
-            Parent._children.Remove(this);
-        }
-
-        Parent = parent;
-        Parent._children.Add(this);
-        OnParentChanged.Invoke();
-    }
-
-    private void CacheWorldspawn()
-    {
-        var parent = this;
-        while (parent.Parent != null)
-        {
-            parent = parent.Parent;
-        }
-        _currentScene = ((Worldspawn)parent).Scene;
-    }
 
     public Entity WithComponent<T>() where T : Component, new()
     {
@@ -220,16 +252,7 @@ public abstract class Entity : IEnumerable<Entity>
     }
 
 
-    public bool IsInSubtreeOf(Entity target, Entity root)
-    {
-        var next = target;
-        while(next != null)
-        {
-            if(next == root) return true;
-            next = next.Parent;
-        }
-        return false;
-    }
+    
 
 
     /// <summary>
@@ -247,7 +270,16 @@ public abstract class Entity : IEnumerable<Entity>
         component.Bind(this);
         _components.Add(component);
         Onstage.SceneRegistry.RegisterComponent(component);
+        //if we've already been initialised, we initialise the new component right away
+        if (_wasInitialised)
+            component.Initialise();
         return component;
+    }
+
+    public void RemoveComponent(Component component)
+    {
+        _components.Remove(component);
+        component.Destroy();
     }
 
 
@@ -272,11 +304,13 @@ public abstract class Entity : IEnumerable<Entity>
         component = GetComponent<T>()!;
         return component != null;
     }
+    #endregion
+    #region  Events
 
-    public void TransformUpdated() => OnTransformUpdated();
+    internal void TransformUpdated() => OnTransformUpdated();
 
 
-    void OnTransformUpdated()
+    private void OnTransformUpdated()
     {
         if (IsStatic) return;
         foreach (var component in Components)
@@ -287,6 +321,8 @@ public abstract class Entity : IEnumerable<Entity>
 
     public void SetEnabled(bool state)
     {
+        if (state == isEnabled) return;
+
         isEnabled = state;
         if (state)
             OnEnable();
@@ -304,23 +340,18 @@ public abstract class Entity : IEnumerable<Entity>
 
 
 
-    public override string ToString() => $"{FullName}[{GetType().Name}] @ {Transform}";
 
-    public virtual string FullName
+    internal void Initialise()
     {
-        get
-        {
-            if (Parent != null) return $"{Parent.FullName}.{Name}";
-            else return Name;
-
-        }
+        if (_wasInitialised) return;
+        OnInitialise();
     }
 
-    public virtual void OnInitialise() { }
+    protected virtual void OnInitialise() { }
 
-    public virtual void OnEnable() { }
+    protected virtual void OnEnable() { }
 
-    public virtual void OnDisable() { }
+    protected virtual void OnDisable() { }
 
     public void Destroy()
     {
@@ -340,19 +371,59 @@ public abstract class Entity : IEnumerable<Entity>
         Parent?._children.Remove(this);
     }
 
-    public virtual void OnDestroyed() { }
+    protected virtual void OnDestroyed() { }
 
-    public IEnumerator<Entity> GetEnumerator()
+
+
+    #endregion
+    #region Entity API
+
+    /// <summary>
+    /// Instantiates an empty child of this entity (static flag is inherited)
+    /// </summary>
+    /// <param name="name">The name of the new child</param>
+    public void InstantiateEmptyChild(string name) => InstantiateEmpty(name, this, IsStatic);
+
+    /// <summary>
+    /// Instantiates new and empty child
+    /// </summary>
+    /// <param name="name">The name of the empty child</param>
+    /// <param name="parent">The parent of the child</param>
+    /// <param name="isStatic">If the entity is static or not</param>
+    /// <returns>The EmptyEntity that was instantiated</returns>
+    public static EmptyEntity InstantiateEmpty(string name, Entity parent, bool isStatic = false)
     {
-        return _children.GetEnumerator();
+        return Instantiate(() => new EmptyEntity(name, parent, isStatic));
     }
 
-    IEnumerator IEnumerable.GetEnumerator()
+    /// <summary>
+    /// Instantiates new and empty child with the given components
+    /// </summary>
+    /// <param name="name">The name of the empty child</param>
+    /// <param name="parent">The parent of the child</param>
+    /// <param name="isStatic">If the entity is static or not</param>
+    /// <param name="components">The component instances to bind to the new entity</param>
+    /// <returns>The EmptyEntity that was instantiated</returns>
+    public static EmptyEntity InstantiateEmptyWith(string name, Entity parent, bool isStatic, params Component[] components)
     {
-        return _children.GetEnumerator();
+        return Instantiate(() => (EmptyEntity)new EmptyEntity(name, parent, isStatic).WithComponents(components));
+
     }
 
+    /// <summary>
+    /// Instantiates a new entity using the factory that was passed
+    /// </summary>
+    /// <typeparam name="T">The type of the Entity</typeparam>
+    /// <param name="factory">The factory to construct the entity with</param>
+    /// <returns>The instantiated entity</returns>
+    public static T Instantiate<T>(Func<T> factory) where T : Entity
+    {
+        T entity = factory();
+        EntityLifecycle.InitialiseSubtree(entity);
+        return entity;
+    }
 
+    //TODO: decide name path name
     public static Entity? FindEntityByName(string name)
     {
         foreach (var scene in World.LoadedScenes)
@@ -372,6 +443,17 @@ public abstract class Entity : IEnumerable<Entity>
             if (ent != null) return ent;
         }
         return null;
+    }
+
+    public static bool IsInSubtreeOf(Entity target, Entity root)
+    {
+        var next = target;
+        while (next != null)
+        {
+            if (next == root) return true;
+            next = next.Parent;
+        }
+        return false;
     }
 
     public static IEnumerable<Entity> GetAllEntities()
@@ -400,6 +482,7 @@ public abstract class Entity : IEnumerable<Entity>
             }
         }
     }
+    #endregion
 }
 
 public static class EntityLifecycle
@@ -424,7 +507,7 @@ public static class EntityLifecycle
         foreach (Component component in node.Components)
             component.Initialise();
 
-        node.OnInitialise();
+        node.Initialise();
 
         foreach (Entity child in node.Children)
             InitialiseAll(child);

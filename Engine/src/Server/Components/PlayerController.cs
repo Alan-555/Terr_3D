@@ -39,7 +39,7 @@ public class PlayerController : BehaviourComponent
     public PlayerController LocalPlayer => this;
 
 
-    public override void Update(float dt)
+    protected override void OnUpdate(float dt)
     {
         //Debug player pos
         //Onstage.Globals.Canvas.RenderLabel($"x|y|z {Transform}", 0);

@@ -71,7 +71,7 @@ public class Environment : BehaviourComponent
         AudioManager.PlayOneShot(ResourceManager.Audio[strikeKey], 0.5f);*/
     }
 
-    public override void Update(float dt)
+    protected override void OnUpdate(float dt)
     {
         UpdateStorm(dt);
         if (_lighting_age < _maxAge)

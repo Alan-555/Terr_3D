@@ -20,7 +20,7 @@ public class EnvConfig : SingletonComponent
        SkyRenderer = new Renderer(skyShader, ResourceManager.Meshes[ResourceIndex.Meshes.SkyQuad], RendererClass.RENDER_IGNORE);
     }
 
-    public override void Update(float dt)
+    protected override void OnUpdate(float dt)
     {
         if(!Program.DEBUG_FLAG) return;
         if (Input.KeyDown(KeyCode.PageUp))

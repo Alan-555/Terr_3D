@@ -6,9 +6,4 @@ namespace Terr3D.Server.Entities;
 /// <summary>
 /// An empty entity which can be instantiated
 /// </summary>
-public class EmptyEntity : Entity
-{
-    public EmptyEntity(string name, Entity parent, bool isStatic = false) : base(name, parent, isStatic)
-    {
-    }
-}
+public class EmptyEntity(string name, Entity parent, bool isStatic = false) : Entity(name, parent, isStatic);
