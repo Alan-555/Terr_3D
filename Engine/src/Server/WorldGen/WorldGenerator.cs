@@ -25,15 +25,15 @@ public class WorldGenerator
         
 
         //the step we take
-        float step = terrain.TerrainSize / terrain.NumChunks;
+        float step = terrain.RegionSize / terrain.RegionNumChunks;
 
         //the root offset of the origin, so the world is centred
-        var rootOffset = terrain.Pivot;
+        var rootOffset = terrain.Transform.Position;
 
         List<(Mesh, Vector2, Vector2)> meshes = [];
-        for (int x = 0; x < terrain.NumChunks; x++)
+        for (int x = 0; x < terrain.RegionNumChunks; x++)
         {
-            for (int z = 0; z < terrain.NumChunks; z++)
+            for (int z = 0; z < terrain.RegionNumChunks; z++)
             {
                 //the world pos
                 float px = x * step + rootOffset.X;

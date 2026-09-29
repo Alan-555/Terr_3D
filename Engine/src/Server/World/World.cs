@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using Terr3D.Client;
 using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
@@ -8,8 +9,7 @@ namespace Terr3D.Server.Engine;
 
 public class World
 {
-    private static World _instance;
-
+    private static World _instance = null!;
     public static Camera? ActiveCamera
     {
         get => _instance._activeCamera;
@@ -29,6 +29,9 @@ public class World
 
     private readonly SpacePartitioner _partitioner;
     public static SpacePartitioner Queries => _instance._partitioner;
+
+    private readonly GroundService _groundService = new();
+    public static GroundService Ground => _instance._groundService;
 
     private readonly WorldDrawer _worldDrawer;
 

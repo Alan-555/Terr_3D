@@ -43,7 +43,7 @@ public class Physics : BehaviourComponent
     /// <summary>
     /// Is the entity grounded now?
     /// </summary>
-    public bool IsGrounded => MathF.Abs(Transform.Position.Y - World.GetSingleton<GlobalGround>().GetHeightAt(Transform.Position)) < 0.5f;
+    public bool IsGrounded => MathF.Abs(Transform.Position.Y - World.Ground.GetHeightAt(Transform.Position)) < 0.5f;
 
     public AABB_Collider? Collider { get; set; }
 
@@ -68,13 +68,13 @@ public class Physics : BehaviourComponent
         if (entityFalls)
             _velocity += Gravity * dt;
         else
-            Transform.Position = new(Transform.Position.X, World.GetSingleton<GlobalGround>().GetHeightAt(Transform.Position), Transform.Position.Z);
+            Transform.Position = new(Transform.Position.X, World.Ground.GetHeightAt(Transform.Position), Transform.Position.Z);
 
         //Apply drag
         _velocity -= _velocity * Drag * dt;
 
         //cache the ground normal and terrain steepness
-        Vector3 normal = World.GetSingleton<GlobalGround>().GetNormalAt(Transform.Position);
+        Vector3 normal = World.Ground.GetNormalAt(Transform.Position);
         float steepness = Vector3.Dot(Vector3.UnitY, normal);
 
         //If we are grounded, apply friction
@@ -97,7 +97,7 @@ public class Physics : BehaviourComponent
         MoveAndResolveCollisions(dt);
 
         //cache the ground height
-        float groundHeight = World.GetSingleton<GlobalGround>().GetHeightAt(Transform.Position);
+        float groundHeight = World.Ground.GetHeightAt(Transform.Position);
 
 
         if (Transform.Position.Y < groundHeight)

@@ -14,21 +14,19 @@ public static class QuadTreeBuilder
     {
         //if the scene is empty, return an empty leaf node
         if (scene.Worldspawn.Children.Count == 0) return new QuadTreeNode(new(), [], []);
-        var (worldSize, numChunks) = DecideParams(scene);
-        int depth = (int)Math.Log(numChunks, 4); //assuming numChunks is divisible by four
-        var halfSize = worldSize / 2f;
-        var rootVolume = new Bounds(Vector3.Zero, new(halfSize));
-        rootVolume.HalfExtents.Y = 1000f;
-        return Construct(scene, rootVolume, depth);
+        var @params = DecideParams(scene);
+        int depth = (int)Math.Log(@params.totalNumberOfChunks, 4); //assuming numChunks is divisible by four
+        @params.rootBounds.HalfExtents.Y = 1000f;
+        return Construct(scene, @params.rootBounds, depth);
     }
 
-    private static (float worldSize, int numChunks) DecideParams(Scene scene)
+    private static (Bounds rootBounds, int totalNumberOfChunks) DecideParams(Scene scene)
     {
         var ter = scene.FindEntityOfType<Terrain>();
         if (ter != null)
         {
             //construct with terrain's params
-            return (ter.TerrainSize, ter.NumChunks);
+            return (ter.GetTerrainBounds(), ter.GetTotalNumChunks());
         }
         //TODO: finish
         throw new NotImplementedException();

@@ -11,9 +11,9 @@ public class ConcreteScene() : Scene()
         //Spawn player
 
         Diagnostics.Info("Initialising world...");
-        
-        
-        var plr = Entity.Instantiate(()=> new Player("Player", Worldspawn));
+
+
+        var plr = Entity.Instantiate(() => new Player("Player", Worldspawn));
 
         World.ActiveCamera = plr.Children[0].GetComponent<Camera>();
 
@@ -23,7 +23,6 @@ public class ConcreteScene() : Scene()
     public override void SpawnStaticEntities()
     {
         _ = new EnvConfig(EnvConfig.BuiltinSky);
-        var terrain = Entity.Instantiate(()=> new Terrain("Terrain", Worldspawn, 256f, 256));
-        _ = new GlobalGround(terrain);
+        Entity.Instantiate(() => new Terrain("Terrain", Worldspawn, 256f, 256, new(-128f, 0f, -128f)));
     }
 }

@@ -17,7 +17,7 @@ namespace Terr3D.Server.Entities;
 /// This entity is crucial for the correct runtime. It manages common features of the engine, like the terrain, skybox and other very important things. 
 /// The engine will not function without this entity
 /// </summary>
-public class Terrain : Entity, IGlobalGroundProvider
+public class Terrain : Entity, IGroundProvider
 {
 
 
@@ -25,32 +25,33 @@ public class Terrain : Entity, IGlobalGroundProvider
     public const int QuadsPerMeter = 2; //from the assignment. Sampling each 0.5meters means we have two quads per meter
 
     /// <summary>
-    /// The terrain size per axis (since terrains are square)
+    /// The region size per axis (since regions are square)
     /// </summary>
-    public float TerrainSize { get; private init; }
+    public float RegionSize { get; private init; }
 
     /// <summary>
-    /// Total number of chunks (per both axes)
+    /// Number of chunks in a region per one axis
     /// </summary>
-    public int NumChunks { get; private init; }
-
-    public Vector3 Pivot => new(-TerrainSize / 2f, 0, -TerrainSize / 2f);
+    public int RegionNumChunks { get; private init; }
 
     HeighMap _heightMap;
 
 
-    public Terrain(string name, Entity parent, float worldSpaceSize, int heightMapSize) : base(name, parent, true)
+    public Terrain(string name, Entity parent, float worldSpaceSize, int heightMapSize, Vector3 pos = new()) : base(name, parent, true)
     {
+        Transform.Position = pos;
         //Store terrain size in units (meters)
-        TerrainSize = worldSpaceSize;
+        RegionSize = worldSpaceSize;
         _heightMap = new(heightMapSize, heightMapSize);
         _heightMap.Noise();
         Diagnostics.Info("Begin terrain generation...");
 
         //calculate the number of total chunks (per axis)
-        var targetNumChunks = (int)Math.Ceiling(TerrainSize * QuadsPerMeter / QuadsPerChunk);
-        NumChunks = (int)MathF.Sqrt(WorldGeneratorHelpers.FindPowerOfFour(targetNumChunks * targetNumChunks));
+        var targetNumChunks = (int)Math.Ceiling(RegionSize * QuadsPerMeter / QuadsPerChunk);
+        RegionNumChunks = (int)MathF.Sqrt(WorldGeneratorHelpers.FindPowerOfFour(targetNumChunks * targetNumChunks));
         GenerateChunks();
+
+        AddComponent(new Ground(this));
 
     }
 
@@ -74,9 +75,21 @@ public class Terrain : Entity, IGlobalGroundProvider
             {
                 material = mat
             });
-            ent.Transform.Position = new(pos.X, 0f, pos.Y);
+            ent.Transform.Position = new Vector3(pos.X, RandHelper.RandFloatNormalised(), pos.Y) + Transform.Position;
         }
     }
+
+    /// <summary>
+    /// Gets the bounds of the entire terrain (all regions combined)
+    /// </summary>
+    /// <returns></returns>
+    public Bounds GetTerrainBounds()
+    {
+        var origin = Transform.Position.Xz + new Vector2(RegionSize) / 2f;
+        return new(new(origin.X, 0f, origin.Y), new(RegionSize /2f, 0f, RegionSize / 2f));
+    }
+
+    public int GetTotalNumChunks() => RegionNumChunks * RegionNumChunks;
 
     /// <summary>
     /// Converts a Vector3 world position to normalised map space
@@ -85,8 +98,8 @@ public class Terrain : Entity, IGlobalGroundProvider
     /// <returns>The position in the normalised map space coordinates</returns>
     public Vector2 WorldToHeightMapSpace(Vector3 pos)
     {
-        var terrainSpace = pos - Pivot;
-        return terrainSpace.Xz / TerrainSize;
+        var terrainSpace = pos - Transform.Position;
+        return terrainSpace.Xz / RegionSize;
     }
 
     /// <summary>
@@ -96,8 +109,8 @@ public class Terrain : Entity, IGlobalGroundProvider
     /// <returns>The world space position</returns>
     public Vector2 HeightMapSpaceToWorld(Vector2 pos)
     {
-        var mapSpace = pos * TerrainSize;
-        return mapSpace + Pivot.Xz;
+        var mapSpace = pos * RegionSize;
+        return mapSpace + Transform.Position.Xz;
     }
 
     /// <summary>
@@ -139,6 +152,10 @@ public class Terrain : Entity, IGlobalGroundProvider
     public float GetHeightAt(float x, float z) => SampleHeight(new Vector2(x, z));
 
     public Vector3 GetNormalAt(float x, float z) => GetTerrainNormal(new Vector2(x, z));
+
+    public bool Contains(float x, float z) => MathF.Abs(x - Transform.Position.X) <= RegionSize / 2f && MathF.Abs(z - Transform.Position.Z) <= RegionSize / 2f;
+
+    public Vector2 GetOrigin() => Transform.Position.Xz + new Vector2(RegionSize) / 2f;
 }
 
 
