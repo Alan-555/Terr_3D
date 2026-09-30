@@ -60,9 +60,11 @@ public class ConsoleWindow() : SingletonComponent()
     }
 
     private readonly List<string> _logHistory = new List<string>();
+    private readonly List<string> _commandHistory = new List<string>();
     private string _inputBuffer = "";
     private bool _scrollToBottom = false;
     private bool _autoScroll = true;
+    private int _commandHistoryPos = -1;
 
 
     public void AddLog(string message)
@@ -115,21 +117,23 @@ public class ConsoleWindow() : SingletonComponent()
 
         bool reclaimFocus = false;
 
-        ImGuiInputTextFlags inputFlags = ImGuiInputTextFlags.EnterReturnsTrue;
+        ImGuiInputTextFlags inputFlags = ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackHistory;
 
         ImGui.SetNextItemWidth(-1.0f);
-
-        if (ImGui.InputText("##ConsoleInput", ref _inputBuffer, 256, inputFlags))
+        unsafe
         {
-            string command = _inputBuffer.Trim();
-            if (!string.IsNullOrEmpty(command))
+            if (ImGui.InputText("##ConsoleInput", ref _inputBuffer, 256, inputFlags, HistoryCallback))
             {
-                AddLog($"] {command}");
-                ExecuteCommand(command);
-            }
+                string command = _inputBuffer.Trim();
+                if (!string.IsNullOrEmpty(command))
+                {
+                    AddLog($"] {command}");
+                    ExecuteCommand(command);
+                }
 
-            _inputBuffer = "";
-            reclaimFocus = true;
+                _inputBuffer = "";
+                reclaimFocus = true;
+            }
         }
 
         ImGui.SetItemDefaultFocus();
@@ -145,7 +149,7 @@ public class ConsoleWindow() : SingletonComponent()
     public void ExecuteCommand(string str)
     {
         if (string.IsNullOrWhiteSpace(str)) return;
-
+        if(str.Trim() == "clear") ClearLog();
 
         str = str.Replace("\\_", " ");
 
@@ -159,10 +163,50 @@ public class ConsoleWindow() : SingletonComponent()
         }*/
 
         Diagnostics.Debug($"Run cmd: {command}");
+        if (_commandHistory.Count == 0 || _commandHistory[_commandHistory.Count - 1] != command)
+        {
+            _commandHistory.Add(command);
+        }
+        _commandHistoryPos = -1;
         var output = _debugConsole.RunCommand(command, args);
 
         if (output != null)
             AddLog(output);
 
+    }
+
+    private unsafe int HistoryCallback(ImGuiInputTextCallbackData* data)
+    {
+        ImGuiInputTextCallbackDataPtr dataPtr = new ImGuiInputTextCallbackDataPtr(data);
+
+        if (dataPtr.EventFlag == ImGuiInputTextFlags.CallbackHistory)
+        {
+            int prevHistoryPos = _commandHistoryPos;
+
+            if (dataPtr.EventKey == ImGuiKey.UpArrow)
+            {
+                if (_commandHistoryPos == -1)
+                    _commandHistoryPos = _commandHistory.Count - 1;
+                else if (_commandHistoryPos > 0)
+                    _commandHistoryPos--;
+            }
+            else if (dataPtr.EventKey == ImGuiKey.DownArrow)
+            {
+                if (_commandHistoryPos != -1)
+                {
+                    if (++_commandHistoryPos >= _commandHistory.Count)
+                        _commandHistoryPos = -1;
+                }
+            }
+
+            if (prevHistoryPos != _commandHistoryPos)
+            {
+                string historyStr = (_commandHistoryPos >= 0) ? _commandHistory[_commandHistoryPos] : "";
+
+                dataPtr.DeleteChars(0, dataPtr.BufTextLen);
+                dataPtr.InsertChars(0, historyStr);
+            }
+        }
+        return 0;
     }
 }

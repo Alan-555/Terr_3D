@@ -1,3 +1,6 @@
+using Terr3D.Server.Components;
+using Terr3D.Server.Engine;
+
 namespace Terr3D.Utils;
 
 /// <summary>
@@ -31,7 +34,9 @@ public static class Diagnostics
             output = Console.Error;
         }
         var time = DateTime.Now.ToLongTimeString();
-        output.WriteLine($"{time} [{level}] -> {message}");
+        var line = $"{time} [{level}] -> {message}";
+        output.WriteLine(line);
+        World.GetSingleton<ConsoleWindow>().AddLog(line);
         if(args.Length>0)
             output.WriteLine(args);
     }
