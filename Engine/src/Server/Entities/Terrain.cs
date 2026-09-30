@@ -30,35 +30,65 @@ public class Terrain : Entity, IGroundProvider
     public float RegionSize { get; private init; }
 
     /// <summary>
+    /// Height map res
+    /// </summary>
+    public int HeightMapResolution { get; private init; }
+
+    /// <summary>
     /// Number of chunks in a region per one axis
     /// </summary>
     public int RegionNumChunks { get; private init; }
 
-    HeighMap _heightMap;
+    private readonly Dictionary<(int x, int z), HeightMap> _regions = [];
+
+    private int maxRegionX = int.MinValue, minRegionX = int.MaxValue;
+    private int maxRegionZ = int.MinValue, minRegionZ = int.MaxValue;
 
 
-    public Terrain(string name, Entity parent, float worldSpaceSize, int heightMapSize, Vector3 pos = new()) : base(name, parent, true)
+    public Terrain(string name, Entity parent, float regionWorldSize, int heightMapResolution, Vector3 pos = new()) : base(name, parent, true)
     {
         Transform.Position = pos;
-        //Store terrain size in units (meters)
-        RegionSize = worldSpaceSize;
-        _heightMap = new(heightMapSize, heightMapSize);
-        _heightMap.Noise();
-        Diagnostics.Info("Begin terrain generation...");
+
+        RegionSize = regionWorldSize;
+
+        HeightMapResolution = heightMapResolution;
 
         //calculate the number of total chunks (per axis)
         var targetNumChunks = (int)Math.Ceiling(RegionSize * QuadsPerMeter / QuadsPerChunk);
         RegionNumChunks = (int)MathF.Sqrt(WorldGeneratorHelpers.FindPowerOfFour(targetNumChunks * targetNumChunks));
-        GenerateChunks();
 
         AddComponent(new Ground(this));
 
     }
 
-
-    void GenerateChunks()
+    public void Build()
     {
-        var chunks = WorldGenerator.GenerateTerrainMesh(this);
+        foreach (((int x, int z), _) in _regions)
+        {
+            GenerateRegion(x, z);
+        }
+    }
+
+    public void AddRegion(int regionX, int regionZ, HeightMap heighMap)
+    {
+        if (!_regions.TryAdd((regionX, regionZ), heighMap))
+        {
+            throw new InvalidOperationException($"Region ({regionX}, {regionZ}) is already present");
+        }
+
+        if (regionX < minRegionX) minRegionX = regionX;
+        if (regionZ < minRegionZ) minRegionZ = regionZ;
+
+        if (regionX > maxRegionX) maxRegionX = regionX;
+        if (regionZ > maxRegionZ) maxRegionZ = regionZ;
+    }
+
+
+    void GenerateRegion(int regionX, int regionZ)
+    {
+        Vector3 offset = new(regionX * RegionSize, 0f, regionZ * RegionSize);
+
+        var chunks = WorldGenerator.GenerateRegionMeshes(this, offset);
         var mat = new ShadedMaterial()
         {
             diffuse = new Vector3(43, 115, 33) / 255f,
@@ -67,15 +97,15 @@ public class Terrain : Entity, IGroundProvider
         };
 
         //spawn a terrain entity for each chunk
-        foreach (var (mesh, pos, heightData) in chunks)
+        foreach (var (mesh, worldPos) in chunks)
         {
             var ent =
-            new EmptyEntity($"TerrainChunk{pos}", this, true)
+            new EmptyEntity($"TerrainChunk{worldPos}", this, true)
             .WithComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Shaded], mesh, RendererClass.RENDERER_STATIC)
             {
                 material = mat
             });
-            ent.Transform.Position = new Vector3(pos.X, RandHelper.RandFloatNormalised(), pos.Y) + Transform.Position;
+            ent.Transform.Position = new Vector3(worldPos.X, RandHelper.RandFloatNormalised(), worldPos.Y);
         }
     }
 
@@ -86,7 +116,7 @@ public class Terrain : Entity, IGroundProvider
     public Bounds GetTerrainBounds()
     {
         var origin = Transform.Position.Xz + new Vector2(RegionSize) / 2f;
-        return new(new(origin.X, 0f, origin.Y), new(RegionSize /2f, 0f, RegionSize / 2f));
+        return new(new(origin.X, 0f, origin.Y), new(RegionSize / 2f, 0f, RegionSize / 2f));
     }
 
     public int GetTotalNumChunks() => RegionNumChunks * RegionNumChunks;
@@ -159,25 +189,24 @@ public class Terrain : Entity, IGroundProvider
 }
 
 
-class HeighMap
-{
-    public int SizeX { get; private init; }
-    public int SizeZ { get; private init; }
-    private readonly float[] map;
 
-    public HeighMap(int sizeX, int sizeZ)
+public class HeightMap
+{
+    public int Resolution { get; private init; }
+    public float[] map;
+
+    public HeightMap(int resolution)
     {
-        SizeX = sizeX;
-        SizeZ = sizeZ;
-        map = new float[sizeX * sizeZ];
+        Resolution = resolution;
+        map = new float[Resolution * Resolution];
     }
 
-    private Vector2 FromNormalised(float x, float z) => new(float.Clamp(x, 0f, 1f) * (SizeX - 1), float.Clamp(z, 0f, 1f) * (SizeZ - 1));
+    private Vector2 FromNormalised(float x, float z) => new(float.Clamp(x, 0f, 1f) * (Resolution - 1), float.Clamp(z, 0f, 1f) * (Resolution - 1));
 
-    private Vector2 ToNormalised(int x, int z) => new(x / (SizeX + 1f), z / (SizeZ + 1f));
+    private Vector2 ToNormalised(int x, int z) => new(x / (Resolution + 1f), z / (Resolution + 1f));
 
-    public float GetActualHeightAt(int x, int z) => map[x + z * SizeX];
-    private float SetHeightAt(int x, int z, float height) => map[x + z * SizeX] = height;
+    public float GetActualHeightAt(int x, int z) => map[x + z * Resolution];
+    public float SetHeightAt(int x, int z, float height) => map[x + z * Resolution] = height;
 
     public float Sample(Vector3 pos) => Sample(pos.X, pos.Z);
     public float Sample(Vector2 pos) => Sample(pos.X, pos.Y);
@@ -192,8 +221,8 @@ class HeighMap
         int x1 = (int)Math.Floor(x);
         int z1 = (int)Math.Floor(z);
 
-        int x2 = Math.Min(x1 + 1, SizeX - 1);
-        int z2 = Math.Min(z1 + 1, SizeZ - 1);
+        int x2 = Math.Min(x1 + 1, Resolution - 1);
+        int z2 = Math.Min(z1 + 1, Resolution - 1);
 
         float fx = x - x1;
         float fy = z - z1;
@@ -218,36 +247,36 @@ class HeighMap
 
 
     public void Noise()
-{
-    List<(Vector2 pos, float height)> points = [];
-    for (int i = 0; i < 10; i++)
     {
-        points.Add((new Vector2(RandHelper.RandFloatNormalised(), RandHelper.RandFloatNormalised()), RandHelper.RandFloat(0.01f, 64f)));
-    }
-    
-    for (int x = 0; x < SizeX; x++)
-    {
-        for (int z = 0; z < SizeZ; z++)
+        List<(Vector2 pos, float height)> points = [];
+        for (int i = 0; i < 10; i++)
         {
-            var pos = ToNormalised(x, z);
-            float sumHeight = 0f;
-            float sumWeight = 0f; // Track total weight for proper interpolation
-            
-            foreach (var point in points)
+            points.Add((new Vector2(RandHelper.RandFloatNormalised(), RandHelper.RandFloatNormalised()), RandHelper.RandFloat(0.01f, 64f)));
+        }
+
+        for (int x = 0; x < Resolution; x++)
+        {
+            for (int z = 0; z < Resolution; z++)
             {
-                var dist = Vector2.Distance(pos, point.pos);
-                
-                // Clamp distance to prevent division by zero (extreme spikes)
-                dist = dist < 0.01f ? 0.01f : dist; 
-                
-                float weight = 1f / (dist * dist);
-                sumHeight += point.height * weight;
-                sumWeight += weight;
+                var pos = ToNormalised(x, z);
+                float sumHeight = 0f;
+                float sumWeight = 0f; // Track total weight for proper interpolation
+
+                foreach (var point in points)
+                {
+                    var dist = Vector2.Distance(pos, point.pos);
+
+                    // Clamp distance to prevent division by zero (extreme spikes)
+                    dist = dist < 0.01f ? 0.01f : dist;
+
+                    float weight = 1f / (dist * dist);
+                    sumHeight += point.height * weight;
+                    sumWeight += weight;
+                }
+
+                // Final height is the weighted average, not divided by point count
+                SetHeightAt(x, z, sumHeight / sumWeight);
             }
-            
-            // Final height is the weighted average, not divided by point count
-            SetHeightAt(x, z, sumHeight / sumWeight);
         }
     }
-}
 }

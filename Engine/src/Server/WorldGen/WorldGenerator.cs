@@ -20,24 +20,19 @@ public class WorldGenerator
     /// Generates all terrain meshes and packs chunk heights + the world pos into one tuple FIXME: not ideal
     /// </summary>
     /// <param name="terrain">The worldspawn to generate for</param>
-    public static List<(Mesh, Vector2, Vector2)> GenerateTerrainMesh(Terrain terrain)
+    public static List<(Mesh mesh, Vector2 worldPos)> GenerateRegionMeshes(Terrain terrain, Vector3 offset)
     {
-        
-
         //the step we take
         float step = terrain.RegionSize / terrain.RegionNumChunks;
 
-        //the root offset of the origin, so the world is centred
-        var rootOffset = terrain.Transform.Position;
-
-        List<(Mesh, Vector2, Vector2)> meshes = [];
+        List<(Mesh, Vector2)> meshes = [];
         for (int x = 0; x < terrain.RegionNumChunks; x++)
         {
             for (int z = 0; z < terrain.RegionNumChunks; z++)
             {
                 //the world pos
-                float px = x * step + rootOffset.X;
-                float pz = z * step + rootOffset.Z;
+                float px = x * step + offset.X;
+                float pz = z * step + offset.Z;
                 float h = 0;//(float)Random.Shared.NextDouble();
 
                 var (terrainMesh, heightData) = WorldGeneratorHelpers.GeneratePlane(
@@ -49,7 +44,7 @@ public class WorldGenerator
                 );
 
 
-                meshes.Add((terrainMesh, (px, pz), heightData));
+                meshes.Add((terrainMesh, (px, pz)));
             }
         }
 
