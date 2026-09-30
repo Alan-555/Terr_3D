@@ -111,6 +111,7 @@ public abstract class Entity : IEnumerable<Entity>
 
         if (parent == null)
         {
+            //TODO: decide what is just an error and what should throw an exception
             Diagnostics.Error($"Orphaned entity {this} could not set its parent!");
             return;
         }

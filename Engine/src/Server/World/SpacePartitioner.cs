@@ -123,7 +123,6 @@ public class SpacePartitioner
     void QueryFrustum(Matrix4 viewProjMatrix, List<Renderer> renderers, QuadTreeNode node)
     {
         var classification = Bounds.ClassifyVisibilityForFrustum(viewProjMatrix, node.volume);
-        classification = Visibility.FULL;
         if (classification == Visibility.NONE)
         {
             //do not bother searching further. Cull this entire node

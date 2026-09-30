@@ -14,8 +14,7 @@ using YamlDotNet.Core.Events;
 namespace Terr3D.Server.Entities;
 
 /// <summary>
-/// This entity is crucial for the correct runtime. It manages common features of the engine, like the terrain, skybox and other very important things. 
-/// The engine will not function without this entity
+/// This entity can be used to generate and render a terrain. It is also a ground provider, so entities know what to stand on
 /// </summary>
 public class Terrain : Entity, IGroundProvider
 {
@@ -41,10 +40,12 @@ public class Terrain : Entity, IGroundProvider
 
     private readonly Dictionary<(int x, int z), HeightMap> _regions = [];
 
-    private int maxRegionX = int.MinValue, minRegionX = int.MaxValue;
-    private int maxRegionZ = int.MinValue, minRegionZ = int.MaxValue;
+    bool _isGenerating = true;
+
+    private int maxRegion = int.MinValue, minRegion = int.MaxValue;
 
 
+    //TODO: fix Transform.Poisition offset
     public Terrain(string name, Entity parent, float regionWorldSize, int heightMapResolution, Vector3 pos = new()) : base(name, parent, true)
     {
         Transform.Position = pos;
@@ -56,31 +57,44 @@ public class Terrain : Entity, IGroundProvider
         //calculate the number of total chunks (per axis)
         var targetNumChunks = (int)Math.Ceiling(RegionSize * QuadsPerMeter / QuadsPerChunk);
         RegionNumChunks = (int)MathF.Sqrt(WorldGeneratorHelpers.FindPowerOfFour(targetNumChunks * targetNumChunks));
-
-        AddComponent(new Ground(this));
-
     }
 
+    /// <summary>
+    /// Call this method once all regions have been added and configured. This will generate the meshes
+    /// </summary>
     public void Build()
     {
         foreach (((int x, int z), _) in _regions)
         {
             GenerateRegion(x, z);
         }
+        _isGenerating = false;
+        AddComponent(new Ground(this));
     }
 
-    public void AddRegion(int regionX, int regionZ, HeightMap heighMap)
+    /// <summary>
+    /// Registers a new region to the terrain to generate
+    /// </summary>
+    /// <param name="regionX">The x component of the region ID</param>
+    /// <param name="regionZ">The z component of the region ID</param>
+    /// <returns>A height map, where you are to store the shape of the terrain</returns>
+    public HeightMap AddRegion(int regionX, int regionZ)
     {
-        if (!_regions.TryAdd((regionX, regionZ), heighMap))
+        if (!_isGenerating)
+            throw new InvalidOperationException("The terrain has already been built!");
+        var map = new HeightMap(HeightMapResolution);
+        if (!_regions.TryAdd((regionX, regionZ), map))
         {
             throw new InvalidOperationException($"Region ({regionX}, {regionZ}) is already present");
         }
 
-        if (regionX < minRegionX) minRegionX = regionX;
-        if (regionZ < minRegionZ) minRegionZ = regionZ;
+        if (regionX < minRegion) minRegion = regionX;
+        if (regionZ < minRegion) minRegion = regionZ;
 
-        if (regionX > maxRegionX) maxRegionX = regionX;
-        if (regionZ > maxRegionZ) maxRegionZ = regionZ;
+        if (regionX > maxRegion) maxRegion = regionX;
+        if (regionZ > maxRegion) maxRegion = regionZ;
+
+        return map;
     }
 
 
@@ -105,7 +119,7 @@ public class Terrain : Entity, IGroundProvider
             {
                 material = mat
             });
-            ent.Transform.Position = new Vector3(worldPos.X, RandHelper.RandFloatNormalised(), worldPos.Y);
+            ent.Transform.Position = new Vector3(worldPos.X, 0f, worldPos.Y);
         }
     }
 
@@ -115,18 +129,20 @@ public class Terrain : Entity, IGroundProvider
     /// <returns></returns>
     public Bounds GetTerrainBounds()
     {
-        var origin = Transform.Position.Xz + new Vector2(RegionSize) / 2f;
-        return new(new(origin.X, 0f, origin.Y), new(RegionSize / 2f, 0f, RegionSize / 2f));
+        float c = (minRegion + maxRegion + 1) * RegionSize * 0.5f;
+        var origin = new Vector3(Transform.Position.X + c, Transform.Position.Y, Transform.Position.Z + c);
+        var terrainExtents = new Vector2(RegionSize * (maxRegion - minRegion + 1)) / 2f;
+        return new(origin, new(terrainExtents.X, 0f, terrainExtents.Y));
     }
 
     public int GetTotalNumChunks() => RegionNumChunks * RegionNumChunks;
 
     /// <summary>
-    /// Converts a Vector3 world position to normalised map space
+    /// Converts a Vector3 world position to region space. Where 0-1 for both axis is the first region, 1 - 2, is the second and so on
     /// </summary>
     /// <param name="pos">The world position</param>
-    /// <returns>The position in the normalised map space coordinates</returns>
-    public Vector2 WorldToHeightMapSpace(Vector3 pos)
+    /// <returns>The position in the region space coordinate system</returns>
+    public Vector2 WorldToRegionSpace(Vector3 pos)
     {
         var terrainSpace = pos - Transform.Position;
         return terrainSpace.Xz / RegionSize;
@@ -137,7 +153,7 @@ public class Terrain : Entity, IGroundProvider
     /// </summary>
     /// <param name="pos">The NMS position</param>
     /// <returns>The world space position</returns>
-    public Vector2 HeightMapSpaceToWorld(Vector2 pos)
+    public Vector2 RegionSpaceToWorld(Vector2 pos)
     {
         var mapSpace = pos * RegionSize;
         return mapSpace + Transform.Position.Xz;
@@ -150,10 +166,51 @@ public class Terrain : Entity, IGroundProvider
     /// <returns>World space height at that position</returns>
     public float SampleHeight(Vector3 worldPos)
     {
-        var mapSpacePos = WorldToHeightMapSpace(worldPos);
-        float height = _heightMap.Sample(mapSpacePos);
+        var p = WorldToRegionSpace(worldPos);
 
-        return height;
+        // Clamp to the terrain's square range. The far edge is maxRegion + 1.
+        float rx = Math.Clamp(p.X, minRegion, maxRegion + 1);
+        float rz = Math.Clamp(p.Y, minRegion, maxRegion + 1);
+
+        int idX = Math.Min((int)MathF.Floor(rx), maxRegion);
+        int idZ = Math.Min((int)MathF.Floor(rz), maxRegion);
+
+        if (_regions.TryGetValue((idX, idZ), out var map))
+        {
+            return map.Sample(new Vector2(rx - idX, rz - idZ));
+        }
+
+        if (_isGenerating)
+            return SampleNearestRegion(rx, rz);
+        else
+            return 0f;
+
+    }
+
+    float SampleNearestRegion(float rx, float rz)
+    {
+        float bestDist = float.MaxValue;
+        (int x, int z) bestId = default;
+        float bestU = 0, bestV = 0;
+
+        foreach (var (id, _) in _regions)
+        {
+            float cx = Math.Clamp(rx, id.x, id.x + 1);
+            float cz = Math.Clamp(rz, id.z, id.z + 1);
+
+            float dx = rx - cx, dz = rz - cz;
+            float dist = dx * dx + dz * dz;
+
+            if (dist < bestDist)
+            {
+                bestDist = dist;
+                bestId = id;
+                bestU = cx - id.x;
+                bestV = cz - id.z;
+            }
+        }
+
+        return _regions[bestId].Sample(new Vector2(bestU, bestV));
     }
 
     /// <summary>
@@ -189,10 +246,19 @@ public class Terrain : Entity, IGroundProvider
 }
 
 
-
+/// <summary>
+/// Class that provides a flat array storing terrain heights and methods to manipulate them
+/// </summary>
 public class HeightMap
 {
+    /// <summary>
+    /// The per-axis resolution of the height map (Resolution^2 is the number of elements)
+    /// </summary>
     public int Resolution { get; private init; }
+
+    /// <summary>
+    /// The actual height map
+    /// </summary>
     public float[] map;
 
     public HeightMap(int resolution)
