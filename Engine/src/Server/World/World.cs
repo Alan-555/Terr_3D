@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Terr3D.Client;
 using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
+using Terr3D.Utils;
 
 namespace Terr3D.Server.Engine;
 
@@ -43,7 +44,7 @@ public class World
         _partitioner = SpacePartitioner.CreateRootTree();
         _worldDrawer = new();
 
-        _ = new ConsoleWindow();
+        _ = new DeveloperFeatures();
         LoadScene(_persistentScene);
     }
 
@@ -66,6 +67,13 @@ public class World
         return (T)_instance.Singletons[typeof(T)];
     }
 
+    public static T? GetSingletonOrNull<T>() where T : SingletonComponent
+    {
+        SingletonComponent? val = null;
+        _instance?.Singletons.TryGetValue(typeof(T), out val);
+        return (T?)val;
+    }
+
     public static T? TryGetSingleton<T>() where T : SingletonComponent
     {
         return (T?)_instance.Singletons.GetValueOrDefault(typeof(T));
@@ -75,6 +83,7 @@ public class World
     {
         _instance._partitioner.AddTree(scene.SceneNode);
         _instance._loadedScenes.Add(scene);
+        Diagnostics.Info($"Loaded scene {scene.Worldspawn.Name}");
     }
 
     public static void UnloadScene(Scene scene)

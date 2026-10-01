@@ -3,11 +3,12 @@ using OpenTK.Mathematics;
 using Terr3D.Server.Shared;
 using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
+using Terr3D.Utils;
 
 namespace Terr3D.Server.Engine;
 
 
-public static class QuadTreeBuilder
+internal static class QuadTreeBuilder
 {
 
     public static QuadTreeNode Construct(Scene scene)
@@ -17,6 +18,7 @@ public static class QuadTreeBuilder
         var @params = DecideParams(scene);
         int depth = (int)Math.Log(@params.totalNumberOfChunks, 4); //assuming numChunks is divisible by four
         @params.rootBounds.HalfExtents.Y = 1000f;
+        Diagnostics.Info($"Building quad tree with depth {depth} | {@params.rootBounds}");
         return Construct(scene, @params.rootBounds, depth);
     }
 
@@ -112,10 +114,9 @@ public static class QuadTreeBuilder
 
 
 
-public class QuadTreeNode
+internal class QuadTreeNode
 {
     public readonly Bounds volume;
-    public readonly List<QuadTreeNode>? subTrees;
     public QuadTreeNode[]? children;
     public readonly Renderer[]? renderers = null;
     public readonly Collider[]? colliders = null;

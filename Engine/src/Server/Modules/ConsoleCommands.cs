@@ -27,6 +27,7 @@ public class DebugConsole
     const string _Debug = "dbg";
     const string _Server = "sv";
     const string _Client = "cl";
+    const string _Internal = "int";
 
     Scene scene;
 
@@ -185,6 +186,7 @@ public class DebugConsole
             if (c.GetType() == compType)
             {
                 c.Destroy();
+                break;
             }
         }
     }
@@ -237,7 +239,7 @@ public class DebugConsole
             var parent = GetEntity(parentName) ?? throw new Exception("Ent not found");
             object[] realArgs = [name, parent];
             Entity instance = (Entity)(Activator.CreateInstance(entType, realArgs) ?? throw new Exception("Instance is null"));
-            Entity.Instantiate(()=> instance);
+            Entity.Instantiate(() => instance);
             return;
         }
 
@@ -305,7 +307,7 @@ public class DebugConsole
         {
             info.AppendLine($"{indent}Children:");
             foreach (var child in entity.Children)
-                info.Append(SceneInfo(child, indentLevel + 1)+"\n\n");
+                info.Append(SceneInfo(child, indentLevel + 1) + "\n\n");
         }
 
         if (entity.Components.Count != 0)
@@ -406,6 +408,46 @@ public class DebugConsole
                 r.SetEnabled(doShow);
             }
         }*/
+    }
+
+    [ConsoleCommand(_Internal, "part", "Dumps info about the partitioner")]
+    public string QuadTreeDebug(string worldspawn)
+    {
+        Worldspawn ent = (Worldspawn)(GetEntity(worldspawn) ?? throw new Exception("No such ent"));
+        StringBuilder str = new();
+        ScanNode(str, ent.Scene.SceneNode, 0);
+        return str.ToString();
+    }
+    private void ScanNode(StringBuilder str, QuadTreeNode node, int indent)
+    {
+        string itemIndent = new('\t', indent);
+        var id = node.isLeaf ? "leaf" : "branch";
+        str.AppendLine($"{itemIndent}{id} @ {node.volume}");
+        if (node.isLeaf)
+        {
+            str.AppendLine($"{itemIndent}Renderers:");
+            foreach (var r in node.renderers!)
+            {
+                str.AppendLine($"{itemIndent}{r}");
+            }
+            str.AppendLine($"{itemIndent}Colliders:");
+            foreach (var r in node.colliders!)
+            {
+                str.AppendLine($"{itemIndent}{r}");
+            }
+        }
+        else
+        {
+
+            str.AppendLine($"{itemIndent}Children:");
+            foreach (var c in node.children!)
+            {
+                ScanNode(str, c, indent + 1);
+                str.AppendLine();
+            }
+
+
+        }
     }
 
     //Meta commands

@@ -12,16 +12,19 @@ using ImGuiNET;
 
 namespace Terr3D.Server.Components;
 
-public class ConsoleWindow() : SingletonComponent()
+public class DeveloperFeatures() : SingletonComponent()
 {
     private bool _consoleActive = false;
+    private bool _debugOverlayer = false;
 
     private DebugConsole _debugConsole;
 
     protected override void OnUpdate(float dt)
     {
         if (_consoleActive)
-            Draw("Terr3D Console");
+            DrawConsole("Terr3D Console");
+        if(_debugOverlayer)
+            DrawOverlayer();
     }
 
     protected override void OnInitialise()
@@ -53,7 +56,7 @@ public class ConsoleWindow() : SingletonComponent()
 
             if (e.Key == Keys.F3)
             {
-                //FontRenderer.DrawDebug = !FontRenderer.DrawDebug;
+                _debugOverlayer = !_debugOverlayer;
                 return;
             }
         }
@@ -61,6 +64,7 @@ public class ConsoleWindow() : SingletonComponent()
 
     private readonly List<string> _logHistory = new List<string>();
     private readonly List<string> _commandHistory = new List<string>();
+    private readonly List<string> _labels = new();
     private string _inputBuffer = "";
     private bool _scrollToBottom = false;
     private bool _autoScroll = true;
@@ -80,8 +84,33 @@ public class ConsoleWindow() : SingletonComponent()
     {
         _logHistory.Clear();
     }
+    private void DrawOverlayer()
+    {
+        ImGuiWindowFlags flags = ImGuiWindowFlags.NoDecoration
+                       | ImGuiWindowFlags.AlwaysAutoResize
+                       | ImGuiWindowFlags.NoSavedSettings
+                       | ImGuiWindowFlags.NoFocusOnAppearing
+                       | ImGuiWindowFlags.NoNav
+                       | ImGuiWindowFlags.NoMove;
 
-    private void Draw(string windowTitle)
+        ImGui.SetNextWindowPos(new System.Numerics.Vector2(10, 10), ImGuiCond.Always);
+
+        ImGui.SetNextWindowBgAlpha(0.0f);
+
+        if (ImGui.Begin("Debug Overlay", flags))
+        {
+            ImGui.TextColored(new System.Numerics.Vector4(1.0f, 1.0f, 0.0f, 1.0f), "Engine Debug Stats");
+            foreach(var line in _labels)
+            {
+                ImGui.Text(line);
+            }
+            _labels.Clear();
+            ImGui.Text($"Camera Pos: {World.ActiveCamera?.Transform}");
+        }
+        ImGui.End();
+    }
+
+    private void DrawConsole(string windowTitle)
     {
         ImGui.SetNextWindowSize(new Vector2(520, 600), ImGuiCond.FirstUseEver);
 
@@ -149,7 +178,7 @@ public class ConsoleWindow() : SingletonComponent()
     public void ExecuteCommand(string str)
     {
         if (string.IsNullOrWhiteSpace(str)) return;
-        if(str.Trim() == "clear") ClearLog();
+        if (str.Trim() == "clear") ClearLog();
 
         str = str.Replace("\\_", " ");
 
@@ -165,7 +194,7 @@ public class ConsoleWindow() : SingletonComponent()
         Diagnostics.Debug($"Run cmd: {command}");
         if (_commandHistory.Count == 0 || _commandHistory[_commandHistory.Count - 1] != command)
         {
-            _commandHistory.Add(command);
+            _commandHistory.Add(str);
         }
         _commandHistoryPos = -1;
         var output = _debugConsole.RunCommand(command, args);
@@ -209,4 +238,8 @@ public class ConsoleWindow() : SingletonComponent()
         }
         return 0;
     }
+
+
+    public static void Log(string message) => World.GetSingletonOrNull<DeveloperFeatures>()?.AddLog(message);
+    public static void DebugLabel(string label) => World.GetSingletonOrNull<DeveloperFeatures>()?._labels.Add(label);
 }

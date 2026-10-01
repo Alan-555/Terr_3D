@@ -21,7 +21,7 @@ public static class ResourceManager
     /// <summary>
     /// Load all resources
     /// </summary>
-    public static void InitialiseGPUResources()
+    public static void InitialiseResources()
     {
         Diagnostics.Info("Loading and compiling shaders...");
         InitShaders();

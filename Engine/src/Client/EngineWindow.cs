@@ -47,7 +47,7 @@ public class EngineWindow : GameWindow
     /// <summary>
     /// An action fired once the GPU assets are ready
     /// </summary>
-    Action? OnGpuReady;
+    Action? OnResourcesReady;
 
     private EngineWindow(NativeWindowSettings windowSettings) : base(GameWindowSettings.Default, windowSettings)
     {
@@ -58,7 +58,7 @@ public class EngineWindow : GameWindow
     {
         var nativeWindowSettings = new NativeWindowSettings()
         {
-            ClientSize = new Vector2i(800, 600),
+            ClientSize = new Vector2i(1080, 720),
             Title = "Terr3D",
             Profile = ContextProfile.Core,
             APIVersion = new Version(3, 3),
@@ -69,7 +69,7 @@ public class EngineWindow : GameWindow
 
         return new EngineWindow(nativeWindowSettings)
         {
-            OnGpuReady = onGpuReady
+            OnResourcesReady = onGpuReady
         };
     }
 
@@ -85,11 +85,11 @@ public class EngineWindow : GameWindow
         GL.Enable(EnableCap.DepthTest);
         GL.Enable(EnableCap.CullFace);
 
-        //Now that GL is ready, we can load the GPU resources
-        ResourceManager.InitialiseGPUResources();
+        //Now that GL is ready, we can load the resources
+        ResourceManager.InitialiseResources();
 
         //Now with resources loaded, the GPU is ready on the application level
-        OnGpuReady?.Invoke();
+        OnResourcesReady?.Invoke();
     }
 
 

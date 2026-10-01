@@ -36,7 +36,7 @@ public static class Diagnostics
         var time = DateTime.Now.ToLongTimeString();
         var line = $"{time} [{level}] -> {message}";
         output.WriteLine(line);
-        World.GetSingleton<ConsoleWindow>().AddLog(line);
+        DeveloperFeatures.Log(line);
         if(args.Length>0)
             output.WriteLine(args);
     }

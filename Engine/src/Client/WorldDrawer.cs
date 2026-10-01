@@ -11,7 +11,7 @@ namespace Terr3D.Client;
 
 public class WorldDrawer
 {
-
+    private int numRenderers = 0;
     const int DepthBufferRes = 1024;
 
     const float ShadowDistance = 32;
@@ -29,13 +29,10 @@ public class WorldDrawer
 
     ShaderProgram _depthShader;
 
-    ShaderProgram _fontShader;
-
     public WorldDrawer()
     {
         _depthBufferTexture = new Texture(depthBuffer.depthMap);
         _depthShader = ResourceManager.Shaders[ResourceIndex.Shaders.Depth];
-        _fontShader = ResourceManager.Shaders[ResourceIndex.Shaders.Font];
     }
 
     /// <summary>
@@ -49,6 +46,7 @@ public class WorldDrawer
     public void RenderWorld()
     {
         var cam = World.ActiveCamera;
+        numRenderers = 0;
         if (cam == null) return;
 
         //cache matrices
@@ -86,6 +84,8 @@ public class WorldDrawer
         _frame++;
         //reset the texture
         GL.ActiveTexture(TextureUnit.Texture0);
+
+        DeveloperFeatures.DebugLabel($"Num shaders: {numRenderers} ({_frame})");
     }
 
     void DrawSky(ref MatrixPackage mat)
@@ -256,6 +256,8 @@ public class WorldDrawer
 
         //clean up
         ClearFlagsAndUniforms(shader);
+
+        numRenderers++;
     }
 
     /// <summary>

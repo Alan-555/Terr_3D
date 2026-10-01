@@ -10,6 +10,7 @@ class Program
     {
         if (args.Contains("--debug"))
         {
+            Diagnostics.Debug("Debug mode enabled");
             DEBUG_FLAG = true;
         }
         Diagnostics.Info("Initialising client...");
@@ -17,25 +18,20 @@ class Program
         InitClient(()=>InitRest(false));
     }
 
-    static void InitClient(Action OnGpuReady)
+    static void InitClient(Action OnResourcesReady)
     {
         if(DEBUG_FLAG)
             Profiler.Initialise();
-        var screen = Client.EngineWindow.ConstructScreen(OnGpuReady);
+        var screen = Client.EngineWindow.ConstructScreen(OnResourcesReady);
         screen.Run();
     }
 
     static void InitRest(bool isMenu)
     {
         World.Create();
+        Diagnostics.Info("World crated. Spawning scene...");
         Scene scene = new ConcreteScene();
         World.LoadScene(scene);
-
-        //once client and GL context is ready, we initialise the rest
-        if(isMenu)
-            scene.InitMainMenu();
-
-        Diagnostics.Info("Loading done.");
         EngineWindow.Instance.IsVisible = true;
     }
 }

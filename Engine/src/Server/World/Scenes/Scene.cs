@@ -8,13 +8,16 @@ public abstract class Scene
     public Worldspawn Worldspawn {get; private init;}
     public SceneRegistry SceneRegistry { get; private init; } = new();
 
-    public QuadTreeNode SceneNode;
+    internal QuadTreeNode SceneNode {get; private init;}
 
     public Scene()
     {
+        Diagnostics.Info("Initialising scene...");
         Worldspawn = new(this);
         SpawnStaticEntities();
+        Diagnostics.Info("Done creating static entities. Partitioning...");
         SceneNode = QuadTreeBuilder.Construct(this);
+        Diagnostics.Info("Static entities partitioned. Spawning dynamic entities...");
         SpawnDynamicEntities();
     }
     

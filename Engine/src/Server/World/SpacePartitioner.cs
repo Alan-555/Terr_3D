@@ -23,7 +23,7 @@ public class SpacePartitioner
         _rootNode = root;
     }
 
-    public void AddTree(QuadTreeNode node)
+    internal void AddTree(QuadTreeNode node)
     {
         _rootNode.children = [.. _rootNode.children ?? [], node];
     }
@@ -152,7 +152,7 @@ public class SpacePartitioner
 
 
 
-    public void QueryCollision(Bounds queryVolume, List<Collider> results, QuadTreeNode node)
+    internal void QueryCollision(Bounds queryVolume, List<Collider> results, QuadTreeNode node)
     {
         //Skip this sub-tree entirely
         if (!node.volume.Intersects(queryVolume))
