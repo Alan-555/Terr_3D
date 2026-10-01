@@ -3,7 +3,7 @@ using Terr3D.Utils;
 
 namespace Terr3D.Server.Entities;
 
-public class Worldspawn : Entity
+public sealed class Worldspawn : Entity
 {
     public static int WorldspawnIncremental = 0;
     private int _id = WorldspawnIncremental++;

@@ -11,10 +11,10 @@ namespace Terr3D.Server.Components;
 public class Camera : Component
 {
 
-    public const float Near = 0.05f;
-    public const float Far = 256;
+    public float Near {get; set;} = 0.05f;
+    public float Far {get; set;} = 256;
 
-    public float FOV = MathHelper.DegreesToRadians(90f);
+    public float FOV {get; set;} = MathHelper.DegreesToRadians(90f);
 
 
     public Camera()

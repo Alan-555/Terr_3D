@@ -12,14 +12,11 @@ namespace Terr3D.Server.WorldGen;
 /// <summary>
 /// Class responsible for generating the world
 /// </summary>
-public class WorldGenerator
+internal class WorldGenerator
 {
 
 
-    /// <summary>
-    /// Generates all terrain meshes and packs chunk heights + the world pos into one tuple FIXME: not ideal
-    /// </summary>
-    /// <param name="terrain">The worldspawn to generate for</param>
+    
     public static List<(Mesh mesh, Vector2 worldPos)> GenerateRegionMeshes(Terrain terrain, Vector3 offset)
     {
         //the step we take
@@ -71,7 +68,7 @@ public class WorldGenerator
 
 
 
-public static class WorldGeneratorHelpers
+internal static class WorldGeneratorHelpers
 {
 
     public static int FindPowerOfFour(int n)

@@ -8,7 +8,7 @@ namespace Terr3D.Server.Entities;
 /// <summary>
 /// Class used to represent all transformations of an object. Provides model matrix with caching logic
 /// </summary>
-public class Transform
+public sealed class Transform
 {
 
     public Transform(Entity entity)

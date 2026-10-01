@@ -60,7 +60,7 @@ public class WorldDrawer
             viewProjMatrixForCulling = World.GetSingleton<PlayerCamera>().plrCam.ViewMatrix * World.GetSingleton<PlayerCamera>().plrCam.ProjectionMatrix;
 
         //render to the light depth buffer and obtain the light matrix 
-        DepthPass(ref viewMatrix, projectionMatrix, out var lightMatrix);
+        DepthPass(ref viewMatrix, projectionMatrix, cam.Near, out var lightMatrix);
 
         //package the matrices
         MatrixPackage mat = new(ref viewMatrix, ref projectionMatrix, ref viewProjMatrixForCulling, ref orthoMatrix, ref lightMatrix);
@@ -127,11 +127,11 @@ public class WorldDrawer
     }
 
     //Renders the scene into a depth texture used for shadow mapping
-    void DepthPass(ref Matrix4 viewMatrix, Matrix4 projectionMatrix, out Matrix4 lightMatrix)
+    void DepthPass(ref Matrix4 viewMatrix, Matrix4 projectionMatrix, float near, out Matrix4 lightMatrix)
     {
         //bring the camera far clip plane closer
-        projectionMatrix.M33 = -(ShadowDistance + Camera.Near) / (ShadowDistance - Camera.Near);
-        projectionMatrix.M43 = -(2.0f * ShadowDistance * Camera.Near) / (ShadowDistance - Camera.Near);
+        projectionMatrix.M33 = -(ShadowDistance + near) / (ShadowDistance - near);
+        projectionMatrix.M43 = -(2.0f * ShadowDistance * near) / (ShadowDistance - near);
 
         //compute the view-projection matrix
         var viewProjMatrix = viewMatrix * projectionMatrix;

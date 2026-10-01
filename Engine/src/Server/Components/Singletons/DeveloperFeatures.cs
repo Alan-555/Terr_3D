@@ -30,7 +30,7 @@ public class DeveloperFeatures() : SingletonComponent()
     protected override void OnInitialise()
     {
         base.OnInitialise();
-        _debugConsole = new DebugConsole(Onstage);
+        _debugConsole = new DebugConsole();
         AddLog("Welcome to Terr3D console. Type list to list all commands");
         EngineWindow.Instance.KeyDown += OnKeyDown;
     }

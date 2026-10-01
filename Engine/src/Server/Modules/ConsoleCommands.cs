@@ -29,12 +29,6 @@ public class DebugConsole
     const string _Client = "cl";
     const string _Internal = "int";
 
-    Scene scene;
-
-    public DebugConsole(Scene scene)
-    {
-        this.scene = scene;
-    }
 
     /// <summary>
     /// Runs the command and the args
@@ -163,6 +157,12 @@ public class DebugConsole
              }*/
         }
         return Entity.FindEntityByName(name);
+    }
+
+    [ConsoleCommand(_Env, "fog", "Sets the fog density")]
+    public void EnvFog(float density)
+    {
+        World.GetSingleton<EnvConfig>().FogDensity = density;
     }
 
 

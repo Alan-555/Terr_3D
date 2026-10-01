@@ -24,11 +24,8 @@ public class ConcreteScene() : Scene()
     {
         _ = new EnvConfig(EnvConfig.BuiltinSky);
         var terrain = new Terrain("Terrain", Worldspawn, 50f, 256, new(0, 0, 0));
-
-        terrain.AddRegion(0, 0).Noise();
-        terrain.AddRegion(-1,- 1).Noise();
-        terrain.AddRegion(-1, 0).Noise();
-        terrain.AddRegion(0, -1).Noise();
+        for(int i = 0; i < 100; i++)
+            terrain.AddRegion(i, 0).Noise();
 
         terrain.Build();
 

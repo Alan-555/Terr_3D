@@ -98,7 +98,7 @@ public class Terrain : Entity, IGroundProvider
     }
 
 
-    void GenerateRegion(int regionX, int regionZ)
+    private void GenerateRegion(int regionX, int regionZ)
     {
         Vector3 offset = new(regionX * RegionSize, 0f, regionZ * RegionSize);
 
@@ -135,7 +135,7 @@ public class Terrain : Entity, IGroundProvider
         return new(origin, new(terrainExtents.X, 0f, terrainExtents.Y));
     }
 
-    public int GetTotalNumChunks() => RegionNumChunks * RegionNumChunks;
+    public int GetTotalNumChunks() => RegionNumChunks * RegionNumChunks * _regions.Count;
 
     /// <summary>
     /// Converts a Vector3 world position to region space. Where 0-1 for both axis is the first region, 1 - 2, is the second and so on
@@ -317,7 +317,7 @@ public class HeightMap
         List<(Vector2 pos, float height)> points = [];
         for (int i = 0; i < 10; i++)
         {
-            points.Add((new Vector2(RandHelper.RandFloatNormalised(), RandHelper.RandFloatNormalised()), RandHelper.RandFloat(0.01f, 64f)));
+            points.Add((new Vector2(RandHelper.RandFloatNormalised(), RandHelper.RandFloatNormalised()), RandHelper.RandFloat(-10, 10f)));
         }
 
         for (int x = 0; x < Resolution; x++)
