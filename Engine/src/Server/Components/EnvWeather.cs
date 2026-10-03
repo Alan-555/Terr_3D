@@ -44,7 +44,7 @@ public class Environment : BehaviourComponent
         _sky = Entity.AddComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Sky], ResourceManager.Meshes[ResourceIndex.Meshes.SkyQuad], RendererClass.RENDER_IGNORE));
 
         //Add the sun
-        _sun = Entity.InstantiateEmpty("Sun", Onstage.Worldspawn, false);
+        _sun = Entity.InstantiateEmpty("Sun", Onstage.Worldspawn);
     }
 
     public void SetFogDensity(float d)

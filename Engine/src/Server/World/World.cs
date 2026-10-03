@@ -57,7 +57,7 @@ public class World
         if (_instance.Singletons.ContainsKey(type))
             throw new InvalidOperationException($"Singleton of type {type.Name} already registered.");
         _instance.Singletons[type] = singleton;
-        Entity.InstantiateEmptyWith(type.Name, _instance._persistentScene.Worldspawn, false, [singleton, .. dependencies]);
+        Entity.InstantiateEmptyWith(type.Name, _instance._persistentScene.Worldspawn, [singleton, .. dependencies]);
 
         destroyed += () => _instance.Singletons.Remove(type);
     }

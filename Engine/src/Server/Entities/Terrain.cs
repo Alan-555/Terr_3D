@@ -46,7 +46,7 @@ public class Terrain : Entity, IGroundProvider
 
 
     //TODO: fix Transform.Poisition offset
-    public Terrain(string name, Entity parent, float regionWorldSize, int heightMapResolution, Vector3 pos = new()) : base(name, parent, true)
+    public Terrain(string name, Entity parent, float regionWorldSize, int heightMapResolution, Vector3 pos = new()) : base(name, parent)
     {
         Transform.Position = pos;
 
@@ -114,7 +114,7 @@ public class Terrain : Entity, IGroundProvider
         foreach (var (mesh, worldPos) in chunks)
         {
             var ent =
-            new EmptyEntity($"TerrainChunk{worldPos}", this, true)
+            new EmptyEntity($"TerrainChunk{worldPos}", this)
             .WithComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Shaded], mesh, RendererClass.RENDERER_STATIC)
             {
                 material = mat

@@ -59,7 +59,7 @@ internal static class QuadTreeBuilder
                     }
                     else if (obj is Collider c)
                     {
-                        if (!c.IsStatic) continue;
+                        if (!c.Entity.IsStatic) continue;
                         colliders.Add(c);
                     }
                     else

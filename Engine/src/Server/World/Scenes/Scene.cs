@@ -10,11 +10,14 @@ public abstract class Scene
 
     internal QuadTreeNode SceneNode {get; private init;}
 
+    internal bool spawningStatic = true;
+
     public Scene()
     {
         Diagnostics.Info("Initialising scene...");
         Worldspawn = new(this);
         SpawnStaticEntities();
+        spawningStatic = false;
         Diagnostics.Info("Done creating static entities. Partitioning...");
         SceneNode = QuadTreeBuilder.Construct(this);
         Diagnostics.Info("Static entities partitioned. Spawning dynamic entities...");

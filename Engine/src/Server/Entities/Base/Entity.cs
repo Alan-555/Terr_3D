@@ -91,7 +91,7 @@ public abstract class Entity : IEnumerable<Entity>
     /// </summary>
     internal event Action? OnParentChanged;
 
-    public Entity(string name, Entity parent, bool isStatic = false) //TODO: resolve the isStatic field automatically (only give it to entites spawned in the static scene section)
+    public Entity(string name, Entity parent)
     {
         if (name == "")
         {
@@ -99,7 +99,6 @@ public abstract class Entity : IEnumerable<Entity>
         }
         if (name.Contains('$'))
             name = name.Replace("$", Name + NextEntId);
-        IsStatic = isStatic;
         Name = name;
         Transform = new(this);
 
@@ -118,6 +117,7 @@ public abstract class Entity : IEnumerable<Entity>
 
         SetParent(parent);
         CacheWorldspawn();
+        IsStatic = Onstage.spawningStatic;
     }
 
     #region Utils and props
@@ -384,7 +384,7 @@ public abstract class Entity : IEnumerable<Entity>
     /// Instantiates an empty child of this entity (static flag is inherited)
     /// </summary>
     /// <param name="name">The name of the new child</param>
-    public void InstantiateEmptyChild(string name) => InstantiateEmpty(name, this, IsStatic);
+    public void InstantiateEmptyChild(string name) => InstantiateEmpty(name, this);
 
     /// <summary>
     /// Instantiates new and empty child
@@ -393,9 +393,9 @@ public abstract class Entity : IEnumerable<Entity>
     /// <param name="parent">The parent of the child</param>
     /// <param name="isStatic">If the entity is static or not</param>
     /// <returns>The EmptyEntity that was instantiated</returns>
-    public static EmptyEntity InstantiateEmpty(string name, Entity parent, bool isStatic = false)
+    public static EmptyEntity InstantiateEmpty(string name, Entity parent)
     {
-        return Instantiate(() => new EmptyEntity(name, parent, isStatic));
+        return Instantiate(() => new EmptyEntity(name, parent));
     }
 
     /// <summary>
@@ -406,9 +406,9 @@ public abstract class Entity : IEnumerable<Entity>
     /// <param name="isStatic">If the entity is static or not</param>
     /// <param name="components">The component instances to bind to the new entity</param>
     /// <returns>The EmptyEntity that was instantiated</returns>
-    public static EmptyEntity InstantiateEmptyWith(string name, Entity parent, bool isStatic, params Component[] components)
+    public static EmptyEntity InstantiateEmptyWith(string name, Entity parent, params Component[] components)
     {
-        return Instantiate(() => (EmptyEntity)new EmptyEntity(name, parent, isStatic).WithComponents(components));
+        return Instantiate(() => (EmptyEntity)new EmptyEntity(name, parent).WithComponents(components));
 
     }
 
@@ -418,7 +418,7 @@ public abstract class Entity : IEnumerable<Entity>
     /// <typeparam name="T">The type of the Entity</typeparam>
     /// <param name="factory">The factory to construct the entity with</param>
     /// <returns>The instantiated entity</returns>
-    public static T Instantiate<T>(Func<T> factory) where T : Entity
+    public static T Instantiate<T>(Func<T> factory) where T : Entity //TODO: remove factory pattern
     {
         T entity = factory();
         EntityLifecycle.InitialiseSubtree(entity);

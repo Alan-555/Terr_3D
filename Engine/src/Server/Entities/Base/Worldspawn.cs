@@ -21,7 +21,7 @@ public sealed class Worldspawn : Entity
 
     public Scene Scene {get; private init;}
 
-    public Worldspawn(Scene scene) : base("worldspawn", null!, false)
+    public Worldspawn(Scene scene) : base("worldspawn", null!)
     {
         Scene = scene;
     }

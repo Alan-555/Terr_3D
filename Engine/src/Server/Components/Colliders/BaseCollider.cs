@@ -4,13 +4,8 @@ using Terr3D.Server.Shared;
 namespace Terr3D.Server.Components;
 
 
-public abstract class Collider(bool isStatic = false) : Component, ISpatialBounds
+public abstract class Collider() : Component, ISpatialBounds
 {
-
-    /// <summary>
-    /// Whether this collider is static and managed by the Quadtree.
-    /// </summary>
-    public bool IsStatic { get; set; } = isStatic;
 
     /// <summary>
     /// Checks if this collider intersects with another BoxCollider.

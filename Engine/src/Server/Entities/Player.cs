@@ -7,7 +7,7 @@ namespace Terr3D.Server.Entities;
 
 public class Player : Entity
 {
-    public Player(string name, Entity parent) : base(name, parent, false)
+    public Player(string name, Entity parent) : base(name, parent)
     {
         //Spawn the camera pivot
         var cameraPivot = new EmptyEntity("PlrNeck", this).WithComponent<Camera>();
@@ -40,7 +40,7 @@ public class Player : Entity
         });
 
         //Free cam feature
-        var freeCamEntity = InstantiateEmptyWith("FreeCamera", Onstage.Worldspawn, false, new Camera(), new FreeCameraController());
+        var freeCamEntity = InstantiateEmptyWith("FreeCamera", Onstage.Worldspawn, new Camera(), new FreeCameraController());
         freeCamEntity.SetEnabled(false);
 
         var c = AddComponent<PlayerController>();

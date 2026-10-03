@@ -12,12 +12,12 @@ namespace Terr3D.Server.Entities;
 public class ModelEntity : Entity
 {
     public Renderer Renderer { get; private set; }
-    public ModelEntity(string name, Entity parent, ShaderProgram shader, Mesh mesh, bool isStatic = false) : base(name, parent, isStatic)
+    public ModelEntity(string name, Entity parent, ShaderProgram shader, Mesh mesh) : base(name, parent)
     {
-        Renderer = AddComponent(new Renderer(shader, mesh, isStatic ? RendererClass.RENDERER_STATIC : RendererClass.RENDERER_DYNAMIC));
+        Renderer = AddComponent(new Renderer(shader, mesh, IsStatic ? RendererClass.RENDERER_STATIC : RendererClass.RENDERER_DYNAMIC));
     }
 
-    public ModelEntity(Entity parent, ModelDefinition definition) : base($"{definition.Name}$", parent, definition.Properties.IsStatic)
+    public ModelEntity(Entity parent, ModelDefinition definition) : base($"{definition.Name}$", parent)
     {
         Mesh mesh = ResourceManager.Meshes[definition.Mesh];
 
@@ -52,7 +52,7 @@ public class ModelEntity : Entity
                 {
                     Vector3 center = new(col.Center[0], col.Center[1], col.Center[2]);
                     Vector3 halfExtents = new(col.HalfExtents[0], col.HalfExtents[1], col.HalfExtents[2]);
-                    var c = AddComponent(new BoxCollider(halfExtents * 2, center, definition.Properties.IsStatic));
+                    var c = AddComponent(new BoxCollider(halfExtents * 2, center));
                 }
             }
         }
