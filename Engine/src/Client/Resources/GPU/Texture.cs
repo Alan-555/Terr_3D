@@ -9,11 +9,8 @@ namespace Terr3D.Client.Resources;
 /// </summary>
 public class Texture : GPU_Resource
 {
-    public Texture(string path)
+    public Texture(Image<Rgba32> image)
     {
-        //Load the texture from the disk
-        using Image<Rgba32> image = Image.Load<Rgba32>(path);
-
         //Create a texture in the VRAM
         _resHandle = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, this);

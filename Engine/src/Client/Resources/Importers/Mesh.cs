@@ -2,17 +2,20 @@ using OpenTK.Mathematics;
 using Terr3D.Utils;
 using static System.Globalization.CultureInfo;
 
-namespace Terr3D.Client.Resources.Utils;
+namespace Terr3D.Client.Resources.Importers;
 
-/// <summary>
-/// Loads a .obj file and parses its vertices and triangles
-/// </summary>
-public static class ObjLoader
+
+public class MeshImporter : Importer<Mesh>
 {
-    public static (Vertex[], Triangle[]) Load(string filename)
+    protected override Mesh Import(Stream data, string path)
     {
-        var lines = File.ReadAllLines(filename);
-        
+        var obj = Load(data);
+        return new(obj.Item1, obj.Item2);
+    }
+
+    public static (Vertex[], Triangle[]) Load(Stream stream)
+    {
+
         //Temporary lists for raw OBJ data
         List<Vector3> tempPositions = new();
         List<Vector2> tempUVs = new();
@@ -21,12 +24,15 @@ public static class ObjLoader
         //OpenGL buffers
         List<Vertex> vertices = new();
         List<Triangle> triangles = new();
-        
-        
+
+
         Dictionary<string, uint> vertexCache = new();
 
-        foreach (var line in lines)
+        StreamReader reader = new(stream);
+        
+        while (!reader.EndOfStream)
         {
+            string line = reader.ReadLine()!;
             var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 0) continue;
 
@@ -34,8 +40,8 @@ public static class ObjLoader
             if (parts[0] == "v")
             {
                 //Try parse the vertex data
-                if (float.TryParse(parts[1], InvariantCulture, out float x) && 
-                    float.TryParse(parts[2], InvariantCulture, out float y) && 
+                if (float.TryParse(parts[1], InvariantCulture, out float x) &&
+                    float.TryParse(parts[2], InvariantCulture, out float y) &&
                     float.TryParse(parts[3], InvariantCulture, out float z))
                 {
                     //Add the vertex data
@@ -46,7 +52,7 @@ public static class ObjLoader
             else if (parts[0] == "vt")
             {
                 //Try parse the UV
-                if (float.TryParse(parts[1], InvariantCulture, out float u) && 
+                if (float.TryParse(parts[1], InvariantCulture, out float u) &&
                     float.TryParse(parts[2], InvariantCulture, out float v))
                 {
                     //Add the UVs on successful parse
@@ -57,8 +63,8 @@ public static class ObjLoader
             else if (parts[0] == "vn")
             {
                 //Try parse the vertex normal
-                if (float.TryParse(parts[1], InvariantCulture, out float x) && 
-                    float.TryParse(parts[2], InvariantCulture, out float y) && 
+                if (float.TryParse(parts[1], InvariantCulture, out float x) &&
+                    float.TryParse(parts[2], InvariantCulture, out float y) &&
                     float.TryParse(parts[3], InvariantCulture, out float z))
                 {
                     //Cache the vertex normal
@@ -66,10 +72,10 @@ public static class ObjLoader
                 }
             }
             //Faces
-            else if (parts[0] == "f") 
+            else if (parts[0] == "f")
             {
                 //Check for triangulated faces
-                if (parts.Length == 4) 
+                if (parts.Length == 4)
                 {
                     uint[] faceIndices = new uint[3];
 
@@ -87,11 +93,11 @@ public static class ObjLoader
                         {
                             //Parse the v/vt/vn string
                             var indices = vertexDef.Split('/');
-                            
+
                             //OBJ indices start with 1, so subtract 1
                             int posIndex = int.Parse(indices[0]) - 1;
                             Vector3 pos = tempPositions[posIndex];
-                            
+
                             //Try reading the uv
                             Vector2 uv = Vector2.Zero;
                             if (indices.Length > 1 && !string.IsNullOrEmpty(indices[1]))
@@ -109,7 +115,7 @@ public static class ObjLoader
                             //Create and store the new compiled vertex
                             Vertex newVert = new(pos, normal, uv);
                             vertices.Add(newVert);
-                            
+
                             uint newIndex = (uint)(vertices.Count - 1);
                             faceIndices[i] = newIndex;
                             vertexCache[vertexDef] = newIndex; //Cache it, should it be a shared vertex
@@ -124,6 +130,6 @@ public static class ObjLoader
                 }
             }
         }
-        return ([..vertices], [.. triangles]);
+        return ([.. vertices], [.. triangles]);
     }
 }

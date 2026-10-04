@@ -168,64 +168,64 @@ public enum CommonBehaviourFlags
     /// <summary>
     /// Provides  model, view and projection matrices uniforms
     /// </summary>
-    TRANSFORM_TO_NDC = 1,
+    TRANSFORM_TO_NDC = 1 << 0,
     /// <summary>
     /// Reserved by the sky shader
     /// </summary>
-    USE_SKY = 2,
+    USE_SKY = 1 << 1,
     /// <summary>
     /// Should this use orthographic projection? Does not transform to world space, nor view space
     /// </summary>
-    USE_ORTHO_PROJ = 4,
+    USE_ORTHO_PROJ = 1 << 2,
     /// <summary>
     /// Provides vec3 SunDir uniform
     /// </summary>
-    USE_SUN_DIR = 8,
+    USE_SUN_DIR = 1 << 3,
     /// <summary>
     /// Provides inverse of the view matrix
     /// </summary>
-    USE_INV_PROJ_VIEW = 16,
+    USE_INV_PROJ_VIEW = 1 << 4,
     /// <summary>
     /// Provides vec3 camPos - the camera world position
     /// </summary>
-    USE_CAMERA_POS = 32,
+    USE_CAMERA_POS = 1 << 5,
     /// <summary>
     /// Uses alpha blending
     /// </summary>
-    USE_ALPHA_BLEND = 64,
+    USE_ALPHA_BLEND = 1 << 6,
 
     /// <summary>
     /// Provides all the dynamic lights of a scene
     /// </summary>
-    USE_DYNAMIC_LIGHTS = 128,
+    USE_DYNAMIC_LIGHTS = 1 << 7,
 
     /// <summary>
     /// Renders the object in wireframe mode
     /// </summary>
-    USE_WIREFRAME = 256,
+    USE_WIREFRAME = 1 << 8,
 
     /// <summary>
     /// Renders on top of everything
     /// </summary>
-    USE_RENDER_PRIORITY = 512,
+    USE_RENDER_PRIORITY = 1 << 9,
 
     /// <summary>
     /// Provides a model matrix uniform
     /// </summary>
-    USE_MODEL_MATRIX = 1024,
+    USE_MODEL_MATRIX = 1 << 10,
 
     /// <summary>
     /// Provides the shadow map
     /// </summary>
-    USE_SHADOW_MAP = 2048,
+    USE_SHADOW_MAP = 1 << 11,
 
     /// <summary>
     /// Provides uniforms required for the fog
     /// </summary>
-    USE_SKY_FOG = 4096,
+    USE_SKY_FOG = 1 << 12,
 
     /// <summary>
     /// Provides uniforms for various weather effects
     /// </summary>
-    USE_WEATHER_EFFECTS = 8192,
+    USE_WEATHER_EFFECTS = 1 << 13,
 }

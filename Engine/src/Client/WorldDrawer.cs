@@ -470,10 +470,10 @@ public class WorldDrawer : IDisposable
 
     public void Dispose()
     {
-        _depthBufferTexture.Dispose();
-        _depthShader.Dispose();
+        _depthBufferTexture.Collect();
+        _depthShader.Collect();
         _skyBuffer?.Release();
-        _skyBufferTexture?.Dispose();
+        _skyBufferTexture?.Collect();
         GC.SuppressFinalize(this);
     }
 }

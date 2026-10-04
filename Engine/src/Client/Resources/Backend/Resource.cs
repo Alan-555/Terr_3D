@@ -1,24 +1,24 @@
 using Terr3D.Client.Resources;
 using Terr3D.Utils;
 
-
+namespace Terr3D.Client.Resources;
 /// <summary>
 /// Use this class when you need to store data outside of the .NET runtime (e.g. uploading buffers to GPU). By using this class and the ResourceManager, you avoid leaking memory.
 /// </summary>
 /// <param name="path">The path to the resource</param>
-public abstract class Resource : IDisposable
+public abstract class Resource
 {
 
-    public string Path {get; private set;} = "";
-    public bool IsReleased {get; private set;}
+    public string Path { get; private set; } = "";
+    public bool IsReleased { get; private set; }
 
     internal void Init(string path) => Path = path;
 
     protected abstract void Release();
 
-    public void Dispose()
+    internal void Collect()
     {
-        if(IsReleased) return;
+        if (IsReleased) return;
         IsReleased = true;
         Release();
         GC.SuppressFinalize(this);
@@ -26,7 +26,7 @@ public abstract class Resource : IDisposable
 
     ~Resource()
     {
-        if(!IsReleased)
+        if (!IsReleased)
             Diagnostics.Error($"Resource leak! {this} was never released.");
     }
 }
@@ -34,11 +34,14 @@ public abstract class Resource : IDisposable
 
 internal sealed class ResourceEntry
 {
+    public ResourceManager Manager = null!;
     public string Path;
     public Type Type;
     public ResourceState State;
     public int RefCount;
     public Resource? Instance;
+    public Func<Resource>? Factory;
+    public bool Pinned;
 }
 
 
