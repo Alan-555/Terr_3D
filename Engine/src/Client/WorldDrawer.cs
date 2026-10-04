@@ -9,7 +9,7 @@ using Terr3D.Utils;
 
 namespace Terr3D.Client;
 
-public class WorldDrawer
+public class WorldDrawer : IDisposable
 {
     private int numRenderers = 0;
     const int DepthBufferRes = 1024;
@@ -94,7 +94,7 @@ public class WorldDrawer
         //update size
         if (_skyBuffer == null || _skyBuffer.Width != size.X || _skyBuffer.Height != size.Y)
         {
-            _skyBuffer?.Dispose();
+            _skyBuffer?.Release();
             _skyBuffer = new ColourFrameBuffer(size.X, size.Y);
             _skyBufferTexture = new Texture(_skyBuffer.colourTexture);
         }
@@ -216,7 +216,7 @@ public class WorldDrawer
         else
         {
             //group renderers by their shader
-            var groupedByShader = worldRenderers.GroupBy(r => r.ShaderProgram._resHandle);
+            var groupedByShader = worldRenderers.GroupBy(r => r.ShaderProgram);
             foreach (var group in groupedByShader)
             {
                 var shader = group.First().ShaderProgram;
@@ -468,6 +468,14 @@ public class WorldDrawer
 
     }
 
+    public void Dispose()
+    {
+        _depthBufferTexture.Dispose();
+        _depthShader.Dispose();
+        _skyBuffer?.Release();
+        _skyBufferTexture?.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }
 
 

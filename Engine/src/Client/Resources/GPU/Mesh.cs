@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Threading.Channels;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
@@ -7,14 +8,14 @@ namespace Terr3D.Client.Resources;
 /// <summary>
 /// Defines a VBO, IBO and VAO to store mesh data. The data is kept in the RAM as well, should the CPU want to access it
 /// </summary>
-public class Mesh
+public class Mesh : GPU_Resource
 {
-    Vertex[] vertices;
-    public Triangle[] triangles;
+    public readonly Vertex[] vertices;
+    public readonly Triangle[] triangles;
 
-    public VBO VBO;
-    public IBO IBO;
-    public VAO VAO;
+    internal readonly VBO VBO;
+    internal readonly IBO IBO;
+    internal readonly VAO VAO;
 
     public Vector3 minPoint = Vector3.PositiveInfinity, maxPoint = Vector3.NegativeInfinity, center, halfExtents;
 
@@ -50,59 +51,59 @@ public class Mesh
         IBO = new(triangles);
         VAO = new(VBO, IBO);
     }
+
+    protected override void ReleaseGPU_Resource()
+    {
+        VBO.Release();
+        IBO.Release();
+        VAO.Release();
+    }
 }
 
 
 /// <summary>
 /// A vertex buffer object
 /// </summary>
-public class VBO : GPU_Resource
+internal class VBO : GPU_Object
 {
-    public VBO(Vertex[] vertices)
+    public VBO(Vertex[] vertices) : base(GL.GenBuffer())
     {
-        _resHandle = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _resHandle);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, this);
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * Vertex.SizeInBytes, vertices, BufferUsageHint.DynamicDraw);
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
     }
 
-    public override void Dispose()
+    protected override void CollectObject()
     {
-        if (_resHandle != 0)
-            GL.DeleteBuffer(this);
-        base.Dispose();
+        GL.DeleteBuffer(this);
     }
 }
 
 /// <summary>
 /// An index buffer object - stores indices to vertices
 /// </summary>
-public class IBO : GPU_Resource
+internal class IBO : GPU_Object
 {
-    public IBO(Triangle[] triangles)
+    public IBO(Triangle[] triangles) : base(GL.GenBuffer())
     {
-        _resHandle = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, this);
         GL.BufferData(BufferTarget.ElementArrayBuffer, triangles.Length * 3 * sizeof(int), triangles, BufferUsageHint.StaticDraw);
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
     }
 
-    public override void Dispose()
+    protected override void CollectObject()
     {
-        if (_resHandle != 0)
-            GL.DeleteBuffer(this);
-        base.Dispose();
+        GL.DeleteBuffer(this);
     }
 }
 
 /// <summary>
 /// A vertex array object to pack all vertex attributes together
 /// </summary>
-public class VAO : GPU_Resource
+internal class VAO : GPU_Object
 {
-    public VAO(VBO vbo, IBO ibo)
+    public VAO(VBO vbo, IBO ibo) : base(GL.GenVertexArray())
     {
-        _resHandle = GL.GenVertexArray();
         GL.BindVertexArray(this);
         GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
 
@@ -122,11 +123,9 @@ public class VAO : GPU_Resource
         GL.BindVertexArray(0);
     }
 
-    public override void Dispose()
+    protected override void CollectObject()
     {
-        if (_resHandle != 0)
-            GL.DeleteVertexArray(this);
-        base.Dispose();
+        GL.DeleteVertexArray(this);
     }
 }
 

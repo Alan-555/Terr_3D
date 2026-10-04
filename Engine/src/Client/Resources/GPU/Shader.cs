@@ -8,12 +8,10 @@ namespace Terr3D.Client.Resources;
 /// <summary>
 /// A class for a shader
 /// </summary>
-public class Shader : GPU_Resource
+public class Shader : GPU_Object
 {
-    public Shader(ShaderType shaderType, string src)
+    public Shader(ShaderType shaderType, string src) : base(GL.CreateShader(shaderType))
     {
-        //Create and compile the shader
-        _resHandle = GL.CreateShader(shaderType);
         GL.ShaderSource(this, src);
         GL.CompileShader(this);
         //check status
@@ -27,11 +25,9 @@ public class Shader : GPU_Resource
 
     }
 
-    public override void Dispose()
+    protected override void CollectObject()
     {
-        if (_resHandle != 0)
-            GL.DeleteShader(this);
-        base.Dispose();
+        GL.DeleteShader(this);
     }
 }
 
@@ -63,7 +59,7 @@ public class ShaderProgram : GPU_Resource
         foreach (var sh in shaders)
         {
             GL.DetachShader(this, sh);
-            sh.Dispose();
+            sh.Release();
         }
 
         //Check status
@@ -156,11 +152,9 @@ public class ShaderProgram : GPU_Resource
         GL.Uniform1(location, unit);
     }
 
-    public override void Dispose()
+    protected override void ReleaseGPU_Resource()
     {
-        if (_resHandle != 0)
-            GL.DeleteProgram(this);
-        base.Dispose();
+        GL.DeleteProgram(this);
     }
 }
 

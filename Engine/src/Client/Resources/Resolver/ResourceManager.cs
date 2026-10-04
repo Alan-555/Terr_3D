@@ -8,7 +8,7 @@ namespace Terr3D.Client.Resources;
 /// <summary>
 /// Responsible for loading GPU assets (shaders, meshes and textures) and providing static access to them
 /// </summary>
-public static class ResourceManager
+public class ResourceManager
 {
     const string rootPath = "res/";
 
@@ -18,6 +18,25 @@ public static class ResourceManager
     public static RegistryOfResources<ModelDefinition> Models { get; } = new();
     public static RegistryOfResources<int> Audio { get; } = new();
 
+
+    private readonly Dictionary<(Type, string ext), IImporter> importers = new();
+
+    public void RegisterImporter<T>(Importer<T> importer, params string[] extensions) where T : Resource
+    {
+        foreach (var ext in extensions)
+            importers[(typeof(T), ext)] = importer;
+    }
+
+    private Resource LoadInstance(ResourceEntry entry)
+    {
+        var ext = Path.GetExtension(entry.Path);
+        if (!importers.TryGetValue((entry.Type, ext), out var importer))
+            throw new InvalidOperationException($"No importer for {entry.Type.Name} with '{ext}' ({entry.Path})");
+
+        return importer.Load(entry);
+    }
+
+
     /// <summary>
     /// Load all resources
     /// </summary>
@@ -25,10 +44,10 @@ public static class ResourceManager
     {
         Diagnostics.Info("Loading and compiling shaders...");
         InitShaders();
-        
+
         Diagnostics.Info("Discovering and loading meshes...");
         LoadMeshes();
-        
+
         Diagnostics.Info("Discovering and loading textures...");
         LoadTextures();
 
@@ -172,8 +191,5 @@ public static class ResourceManager
         }
     }
 }
-
-
-
 
 

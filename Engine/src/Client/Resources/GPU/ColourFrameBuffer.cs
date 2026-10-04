@@ -3,18 +3,17 @@ using Terr3D.Utils;
 
 namespace Terr3D.Client.Resources;
 
-public class ColourFrameBuffer : GPU_Resource
+public class ColourFrameBuffer : GPU_Object
 {
     public readonly int colourTexture;
     public int Width { get; private set; }
     public int Height { get; private set; }
 
-    public ColourFrameBuffer(int width, int height)
+    public ColourFrameBuffer(int width, int height) : base(GL.GenFramebuffer())
     {
         Width = width;
         Height = height;
-        _resHandle = GL.GenFramebuffer();
-        GL.BindFramebuffer(FramebufferTarget.Framebuffer, _resHandle);
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, this);
 
         colourTexture = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, colourTexture);
@@ -39,13 +38,10 @@ public class ColourFrameBuffer : GPU_Resource
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     }
 
-    public override void Dispose()
+    protected override void CollectObject()
     {
-        if (_resHandle != 0)
-        {
-            GL.DeleteFramebuffer(_resHandle);
-            GL.DeleteTexture(colourTexture);
-        }
-        base.Dispose();
+        GL.DeleteFramebuffer(this);
+        GL.DeleteTexture(colourTexture);
+
     }
 }

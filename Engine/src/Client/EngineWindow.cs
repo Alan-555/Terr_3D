@@ -195,6 +195,7 @@ public class EngineWindow : GameWindow
     protected override void OnUnload()
     {
         _controller?.Dispose();
+        World.DestroyWorld();
         base.OnUnload();
     }
 

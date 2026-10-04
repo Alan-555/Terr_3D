@@ -6,13 +6,12 @@ using Terr3D.Utils;
 namespace Terr3D.Client.Resources;
 
 
-public class DepthFrameBuffer : GPU_Resource
+public class DepthFrameBuffer : GPU_Object
 {
     public readonly int depthMap;
-    public DepthFrameBuffer(int res)
+    public DepthFrameBuffer(int res) : base(GL.GenFramebuffer())
     {
-        _resHandle = GL.GenFramebuffer();
-        GL.BindFramebuffer(FramebufferTarget.Framebuffer, _resHandle);
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, this);
 
         depthMap = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, depthMap);
@@ -32,7 +31,7 @@ public class DepthFrameBuffer : GPU_Resource
         GL.DrawBuffer(DrawBufferMode.None);
         GL.ReadBuffer(ReadBufferMode.None);
 
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal); 
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.None);
 
         var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
@@ -45,14 +44,10 @@ public class DepthFrameBuffer : GPU_Resource
     }
 
 
-    public override void Dispose()
+    protected override void CollectObject()
     {
-        if (_resHandle != 0)
-        {
-            GL.DeleteFramebuffer(_resHandle);
-            GL.DeleteTexture(depthMap);
-        }
-        base.Dispose();
+        GL.DeleteFramebuffer(this);
+        GL.DeleteTexture(depthMap);
     }
 
 }

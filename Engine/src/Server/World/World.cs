@@ -8,7 +8,7 @@ using Terr3D.Utils;
 namespace Terr3D.Server.Engine;
 
 
-public class World
+public class World : IDisposable
 {
     private static World _instance = null!;
     public static Camera? ActiveCamera
@@ -36,7 +36,7 @@ public class World
 
     private readonly WorldDrawer _worldDrawer;
 
-    public World()
+    private World()
     {
         if (_instance != null) throw new InvalidOperationException($"Creating another instance of {nameof(World)}");
         _instance = this;
@@ -48,7 +48,8 @@ public class World
         LoadScene(_persistentScene);
     }
 
-    public static void Create() => _ = new World();
+    internal static void Create() => _ = new World();
+    internal static void DestroyWorld() => _instance.Dispose();
 
 
     public static void RegisterSingleton(SingletonComponent singleton, Action destroyed, Component[] dependencies)
@@ -141,5 +142,11 @@ public class World
                 yield return particle;
             }
         }
+    }
+
+    public void Dispose()
+    {
+        _worldDrawer.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

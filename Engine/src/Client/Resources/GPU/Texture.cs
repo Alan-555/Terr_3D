@@ -43,12 +43,9 @@ public class Texture : GPU_Resource
         _resHandle = existingTexture;
     }
 
-    public override void Dispose()
+
+    protected override void ReleaseGPU_Resource()
     {
-        if (_resHandle != 0)
-        {
-            GL.DeleteTexture(_resHandle);
-        }
-        base.Dispose();
+        GL.DeleteTexture(_resHandle);
     }
 }
