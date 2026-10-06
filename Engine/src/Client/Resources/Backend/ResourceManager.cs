@@ -47,6 +47,8 @@ public class ResourceManager
         }
     }
 
+    public static string GetActualPath(string path) => path; //TODO: impl
+
     public ResourceRef<T> Register<T>(string path, Func<T> factory, bool pinned = false) where T : Resource
     {
         if (entries.ContainsKey(path))
