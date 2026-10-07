@@ -20,6 +20,7 @@ public class ResourceManager
     internal ResourceManager(string rootDirectory)
     {
         this.rootDirectory = rootDirectory;
+        ScanDirectory();
     }
 
 
@@ -29,7 +30,7 @@ public class ResourceManager
             importers[ext.ToLowerInvariant()] = importer;
     }
 
-    public void ScanDirectory()
+    private void ScanDirectory()
     {
         foreach (var file in Directory.EnumerateFiles(rootDirectory, "*", SearchOption.AllDirectories))
         {
@@ -47,10 +48,19 @@ public class ResourceManager
         }
     }
 
-    public static string GetActualPath(string path) => path; //TODO: impl
 
+    /// <summary>
+    /// Registers a dynamic resource, that is not present on the disk
+    /// </summary>
+    /// <typeparam name="T">The type of the resource to register</typeparam>
+    /// <param name="path">The symbolic path for this resource</param>
+    /// <param name="factory">The factory that creates this resource</param>
+    /// <param name="pinned">When this resource is pinned, it is never collected by the garbage collector</param>
+    /// <returns>The ref to that resource</returns>
+    /// <exception cref="InvalidOperationException">If the res is already registered</exception>
     public ResourceRef<T> Register<T>(string path, Func<T> factory, bool pinned = false) where T : Resource
     {
+        path = $"{BuiltinRes}{path}";
         if (entries.ContainsKey(path))
             throw new InvalidOperationException($"Resource already registered: {path}");
 
@@ -67,6 +77,14 @@ public class ResourceManager
         return new ResourceRef<T>(entry);
     }
 
+    /// <summary>
+    /// Retrieves the resource by its path
+    /// </summary>
+    /// <typeparam name="T">The type of resource to retrieve</typeparam>
+    /// <param name="path">The path of the resource</param>
+    /// <returns>The ref to that resource</returns>
+    /// <exception cref="KeyNotFoundException">When the resource does not exist</exception>
+    /// <exception cref="InvalidCastException">When T does not match the resource</exception>
     public ResourceRef<T> Get<T>(string path) where T : Resource
     {
         if (!entries.TryGetValue(path, out var entry))
@@ -75,6 +93,11 @@ public class ResourceManager
             throw new InvalidCastException($"{path} is a {entry.Type.Name}, not a {typeof(T).Name}");
         return new ResourceRef<T>(entry);
     }
+    #region Utils
+    
+    public static string BuiltInPath(string path) => $"{BuiltinRes}{path}";
+
+    #endregion
 
     #region Ref counting
 

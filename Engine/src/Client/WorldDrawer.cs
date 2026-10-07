@@ -27,12 +27,13 @@ public class WorldDrawer : IDisposable
     ColourFrameBuffer? _skyBuffer;
     Texture? _skyBufferTexture;
 
-    ShaderProgram _depthShader;
+    ResourceRef<ShaderProgram> _depthShader;
 
     public WorldDrawer()
     {
         _depthBufferTexture = new Texture(depthBuffer.depthMap);
-        _depthShader = ResourceManager.Shaders[ResourceIndex.Shaders.Depth];
+        _depthShader = Engine.Resources.Get<ShaderProgram>(ResourceManager.BuiltInPath("depthShader"));
+        _depthShader.Acquire();
     }
 
     /// <summary>
@@ -146,16 +147,16 @@ public class WorldDrawer : IDisposable
         GL.Clear(ClearBufferMask.DepthBufferBit);
 
         //use the depth shader
-        _depthShader.Use();
+        _depthShader.Value.Use();
 
-        _depthShader.SetUniform("viewProjMatrix", ref lightMatrix);
+        _depthShader.Value.SetUniform("viewProjMatrix", ref lightMatrix);
 
         //package the matrices
 
         MatrixPackage mat = new(ref lightMatrix);
 
         //and render to the buffer
-        RenderGeometry(ref mat, _depthShader, false);
+        RenderGeometry(ref mat, _depthShader.Value, false);
 
         //clean up
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -471,7 +472,7 @@ public class WorldDrawer : IDisposable
     public void Dispose()
     {
         _depthBufferTexture.Collect();
-        _depthShader.Collect();
+        _depthShader.Release();
         _skyBuffer?.Release();
         _skyBufferTexture?.Collect();
         GC.SuppressFinalize(this);
