@@ -1,5 +1,5 @@
 ﻿using Terr3D.Client;
-using Terr3D.Server.Engine;
+using Terr3D.Server.Core;
 using Terr3D.Utils;
 
 namespace Terr3D;
@@ -13,7 +13,7 @@ class Program
             Diagnostics.Debug("Debug mode enabled");
             DEBUG_FLAG = true;
         }
-        var engine = new EngineInternal();
+        using var engine = new EngineInternal();
     }
 
     

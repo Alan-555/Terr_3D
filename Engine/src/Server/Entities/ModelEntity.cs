@@ -1,7 +1,7 @@
 using OpenTK.Mathematics;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
-using Terr3D.Server.Engine;
+using Terr3D.Server.Core;
 using Terr3D.Utils;
 
 namespace Terr3D.Server.Entities;
@@ -19,7 +19,7 @@ public class ModelEntity : Entity
 
     public ModelEntity(Entity parent, ModelDefinition definition) : base($"{definition.Name}$", parent)
     {
-        Mesh mesh = ResourceManager.Meshes[definition.Mesh];
+        /*Mesh mesh = ResourceManager.Meshes[definition.Mesh];
 
         if (mesh == null)
         {
@@ -55,7 +55,7 @@ public class ModelEntity : Entity
                     var c = AddComponent(new BoxCollider(halfExtents * 2, center));
                 }
             }
-        }
+        }*/
     }
 
     public void ComputeStaticBB()

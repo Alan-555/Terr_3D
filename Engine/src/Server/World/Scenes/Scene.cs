@@ -1,19 +1,30 @@
+using Terr3D.Client.Resources;
 using Terr3D.Server.Entities;
 using Terr3D.Utils;
 
-namespace Terr3D.Server.Engine;
+namespace Terr3D.Server.Core;
 
 public abstract class Scene
 {
-    public Worldspawn Worldspawn {get; private init;}
+
+    private static int nextSceneId = 0;
+    public int Id { get; private init; } = nextSceneId++;
+    public Worldspawn Worldspawn { get; private init; }
     public SceneRegistry SceneRegistry { get; private init; } = new();
 
-    internal QuadTreeNode SceneNode {get; private init;}
+    internal QuadTreeNode SceneNode { get; private init; }
 
     internal bool spawningStatic = true;
 
-    public Scene()
+    private readonly ResourceManager manager;
+    private readonly ResourceScope scope;
+    private readonly List<string> runtimePaths = new();
+
+    internal Scene()
     {
+        manager = Engine.Resources;
+        scope = new(manager);
+
         Diagnostics.Info("Initialising scene...");
         Worldspawn = new(this);
         SpawnStaticEntities();
@@ -23,43 +34,10 @@ public abstract class Scene
         Diagnostics.Info("Static entities partitioned. Spawning dynamic entities...");
         SpawnDynamicEntities();
     }
-    
+
     public abstract void SpawnStaticEntities();
     public abstract void SpawnDynamicEntities();
 
-
-    public void InitMainMenu()
-    {
-        /*
-        Globals.Player.LocalPlayer.Transform.Position = new(1000, 1000, 1000);
-        Globals.Player.LocalPlayer.SetEnabled(false);
-        Globals.CurrentCamera.Transform.Position = new(-3, 13, 14);
-        Globals.CurrentCamera.Transform.Rotation = Quaternion.FromAxisAngle(Vector3.UnitY, 45 * MathHelper.DegToRad);
-
-        new LogicMainMenu(this);*/
-    }
-
-    public void InitDebugScene()
-    {
-        Diagnostics.Info("Spawning debug entities...");
-
-
-        /*DebugEntity dragon = new(this, "dragon", ResourceManager.Meshes.majesticDragon);
-        dragon.Transform.Position = new Vector3(0, 0, -1);
-        //dragon.AddComponent<Physics>();
-
-        DebugEntity tea = new(this, "tea", ResourceManager.Meshes.tea, false);
-        tea.Transform.Position = new Vector3(5, 0, 0);
-        tea.Transform.Rotation = Quaternion.FromEulerAngles(0, -90, 0);
-        tea.Transform.SetParent(dragon.Transform);
-
-        for (int i = 0; i < 100; i++)
-        {
-            DebugEntity bb = new(this, "Bambang", ResourceManager.Meshes.bambang);
-            bb.Transform.Position = new Vector3(Random.Shared.Next(0, 16), 100, Random.Shared.Next(0, 16));
-            bb.AddComponent<Physics>();
-        }*/
-    }
 
     /// <summary>
     /// Updates all enabled entities and their components
@@ -81,22 +59,22 @@ public abstract class Scene
 
     public void DestroyScene()
     {
-       /*Entity[] tempE = new Entity[SceneRegistry.Entities.Count];
-        SceneRegistry.Entities.CopyTo(tempE);
-        foreach (var ent in tempE)
-        {
-            ent.Destroy();
-        }*/
+        /*Entity[] tempE = new Entity[SceneRegistry.Entities.Count];
+         SceneRegistry.Entities.CopyTo(tempE);
+         foreach (var ent in tempE)
+         {
+             ent.Destroy();
+         }*/
 
     }
 
-    
+
 
     public T? FindEntityOfType<T>() where T : Entity
     {
-        foreach(var child in Worldspawn)
+        foreach (var child in Worldspawn)
         {
-            if(child is T c)
+            if (child is T c)
             {
                 return c;
             }
@@ -104,11 +82,68 @@ public abstract class Scene
 
         return null;
     }
+
+
+
+    #region Resources
+
+    /// <summary>
+    /// Loads a resource which is guaranteed to live until this scene unloads, then it may be collected
+    /// </summary>
+    /// <typeparam name="T">A concrete type of a Resource</typeparam>
+    /// <param name="path">Path to that resource</param>
+    /// <returns>The resource instance</returns>
+    public T Load<T>(string path) where T : Resource => scope.Use(manager.Get<T>(path));
+
+    /// <summary>
+    /// Loads a resource that you have a reference to. They resource may not be loaded
+    /// </summary>
+    /// <typeparam name="T">A concrete type of a Resource</typeparam>
+    /// <param name="r">The resource ref</param>
+    /// <returns>The loaded resource</returns>
+    public T Load<T>(ResourceRef<T> r) where T : Resource => scope.Use(r);
+
+    /// <summary>
+    /// Creates a dynamic Resource (a resource that does not exist on disk)
+    /// </summary>
+    /// <typeparam name="T">A concrete type of a Resource</typeparam>
+    /// <param name="name">The name of this resource</param>
+    /// <param name="factory">The factory that constructs this resource</param>
+    /// <returns>The loaded resource</returns>
+    public T Create<T>(string name, Func<T> factory, string setPath = "") where T : Resource
+    {
+        setPath = setPath.Trim();
+        if(setPath == "")
+        {
+            setPath = $"scene{Id}";
+        }
+        else if(setPath.EndsWith('/'))
+        {
+            setPath = setPath[0..(setPath.Length - 1)];
+        }
+        var path = $"{Resource.DynamicRes}{setPath}/{name}";
+        if (!manager.TryGet<T>(path, out var r))
+        {
+            r = manager.Register(path, factory);
+            runtimePaths.Add(path);
+        }
+        return scope.Use(r);
+    }
+
+    internal void Unload()
+    {
+        scope.ReleaseAll();
+        foreach (var path in runtimePaths)
+            manager.Unregister(path);
+        runtimePaths.Clear();
+    }
+
+    #endregion
 }
 
 
 public class EmptyScene() : Scene()
 {
-    public override void SpawnDynamicEntities(){}
-    public override void SpawnStaticEntities(){}
+    public override void SpawnDynamicEntities() { }
+    public override void SpawnStaticEntities() { }
 }

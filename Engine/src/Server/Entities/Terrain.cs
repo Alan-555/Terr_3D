@@ -5,7 +5,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Terr3D.Client;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
-using Terr3D.Server.Engine;
+using Terr3D.Server.Core;
 using Terr3D.Server.Shared;
 using Terr3D.Server.WorldGen;
 using Terr3D.Utils;
@@ -107,7 +107,8 @@ public class Terrain : Entity, IGroundProvider
         {
             diffuse = new Vector3(43, 115, 33) / 255f,
             specular = new Vector3(17, 46, 13) / 255f,
-            shininess = 5f
+            shininess = 5f,
+            albedo = Load<Texture>("textures/emptyWhite.png")
         };
 
         //spawn a terrain entity for each chunk
@@ -115,7 +116,7 @@ public class Terrain : Entity, IGroundProvider
         {
             var ent =
             new EmptyEntity($"TerrainChunk{worldPos}", this)
-            .WithComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Shaded], mesh, RendererClass.RENDERER_STATIC)
+            .WithComponent(new Renderer(Load<ShaderProgram>("shaders/surface/Shaded.frag.glsl"), mesh, RendererClass.RENDERER_STATIC)
             {
                 material = mat
             });

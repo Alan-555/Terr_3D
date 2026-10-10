@@ -1,18 +1,18 @@
 using Terr3D.Client;
 using Terr3D.Client.Resources;
-using Terr3D.Server.Engine;
+using Terr3D.Client.Resources.Importers;
+using Terr3D.Server.Core;
 using Terr3D.Utils;
 
 namespace Terr3D;
 
 public sealed class Engine
 {
-    public const string EnginePrefix = "T3D_";
     private static Engine _instance = null!;
     private readonly EngineInternal _engine;
 
     
-    public static ResourceManager Resources => _instance._engine._resourceManager;
+    internal static ResourceManager Resources => _instance._engine._resourceManager;
 
     internal Engine(EngineInternal engine)
     {
@@ -30,18 +30,27 @@ internal sealed class EngineInternal : IDisposable
     internal EngineInternal()
     {
         _resourceManager = new("res");
+        RegisterBuiltinImporters();
         _ = new Engine(this);
         InitClient(InitRest);
     }
 
-    static void InitClient(Action OnResourcesReady)
+    void RegisterBuiltinImporters()
     {
-        var screen = Client.EngineWindow.ConstructScreen(OnResourcesReady);
+        _resourceManager.RegisterImporter(new MeshImporter(), ".obj");
+        _resourceManager.RegisterImporter(new TextureImporter(), ".png", ".bmp");
+        _resourceManager.RegisterImporter(new ShaderImporter(), ".glsl");
+    }
+
+    void InitClient(Action onGpuContextReady)
+    {
+        var screen = Client.EngineWindow.ConstructScreen(onGpuContextReady);
         screen.Run();
     }
 
-    static void InitRest()
+    void InitRest()
     {
+        _resourceManager.ScanDirectory();
         World.Create();
         Diagnostics.Info("World crated. Spawning scene...");
         Scene scene = new ConcreteScene();
@@ -52,6 +61,7 @@ internal sealed class EngineInternal : IDisposable
 
     public void Dispose()
     {
+        World._instance.Dispose();
         _resourceManager.Dispose();
     }
 }

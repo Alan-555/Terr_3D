@@ -4,7 +4,7 @@ using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
 using Terr3D.Server.Shared;
-using Terr3D.Server.Engine;
+using Terr3D.Server.Core;
 using Terr3D.Utils;
 
 namespace Terr3D.Client;
@@ -32,7 +32,7 @@ public class WorldDrawer : IDisposable
     public WorldDrawer()
     {
         _depthBufferTexture = new Texture(depthBuffer.depthMap);
-        _depthShader = ResourceManager.Shaders[ResourceIndex.Shaders.Depth];
+        _depthShader = World.PersistentScene.Load<ShaderProgram>("shaders/surface/Depth.vert.glsl");
     }
 
     /// <summary>
@@ -471,7 +471,6 @@ public class WorldDrawer : IDisposable
     public void Dispose()
     {
         _depthBufferTexture.Collect();
-        _depthShader.Collect();
         _skyBuffer?.Release();
         _skyBufferTexture?.Collect();
         GC.SuppressFinalize(this);

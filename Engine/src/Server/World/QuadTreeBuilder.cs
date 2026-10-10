@@ -5,7 +5,7 @@ using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
 using Terr3D.Utils;
 
-namespace Terr3D.Server.Engine;
+namespace Terr3D.Server.Core;
 
 
 internal static class QuadTreeBuilder

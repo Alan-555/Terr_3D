@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using Terr3D.Client.Resources;
-using Terr3D.Server.Engine;
+using Terr3D.Server.Core;
 using Terr3D.Server.Shared;
 
 namespace Terr3D.Server.Components;
@@ -17,7 +17,7 @@ public class RainParticleSystem : ParticleSystem
 
     private float _radius = 0;
 
-    public RainParticleSystem(int numParticles = 5000, float radius = 0) : base(numParticles, ResourceManager.Textures[ResourceIndex.Textures.Particle])
+    public RainParticleSystem(int numParticles = 5000, float radius = 0) : base(numParticles, "textures/particle")
     {
         _obstacles = new float[numParticles];
         colour = new Vector4(221, 232, 197, 255) / 255f;

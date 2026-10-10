@@ -4,7 +4,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
-using Terr3D.Server.Engine;
+using Terr3D.Server.Core;
 using Terr3D.Utils;
 
 namespace Terr3D.Server.WorldGen;

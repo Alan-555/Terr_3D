@@ -5,7 +5,7 @@ using Terr3D.Client;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Entities;
 using Terr3D.Server.Modules;
-using Terr3D.Server.Engine;
+using Terr3D.Server.Core;
 using Terr3D.Utils;
 using System.Runtime.CompilerServices;
 using ImGuiNET;

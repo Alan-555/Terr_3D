@@ -4,7 +4,7 @@ using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
 using Terr3D.Server.Shared;
 
-namespace Terr3D.Server.Engine;
+namespace Terr3D.Server.Core;
 
 
 public class SpacePartitioner

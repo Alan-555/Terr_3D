@@ -9,8 +9,24 @@ public class ShaderImporter : Importer<ShaderProgram>
 
     protected override ShaderProgram Import(Stream data, string path)
     {
-        throw new NotImplementedException();
-        /*
+        path = path[0.. (path.IndexOf('.'))];
+
+        var v = LoadShader($"{path}.vert.glsl", ShaderType.VertexShader);
+        var f = LoadShader($"{path}.frag.glsl", ShaderType.FragmentShader);
+        return new(0, v, f);
+
+    }
+
+    static Shader LoadShader(string name, ShaderType shaderType)
+    {
+        var shaderContent =  File.ReadAllText("res/"+name);
+        Shader shader = new(shaderType, shaderContent);
+        return shader;
+    }
+}
+
+
+/*
 
         /*path = ResourceManager.GetActualPath(path);
         var target = new TargetDescription
@@ -38,6 +54,3 @@ public class ShaderImporter : Importer<ShaderProgram>
             new Shader(ShaderType.FragmentShader, frag));
         sp.State = state;      // new field on ShaderProgram, applied when bound
         return sp;*/
-
-    }
-}

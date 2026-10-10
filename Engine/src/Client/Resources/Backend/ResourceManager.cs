@@ -6,10 +6,8 @@ namespace Terr3D.Client.Resources;
 /// <summary>
 /// Responsible for loading GPU assets (shaders, meshes and textures) and providing static access to them
 /// </summary>
-public class ResourceManager
+internal class ResourceManager
 {
-    internal const string DynamicRes = $"{Engine.EnginePrefix}dynamic://";
-    internal const string BuiltinRes = $"{Engine.EnginePrefix}builtin://";
     private readonly string rootDirectory;
     private readonly Dictionary<string, ResourceEntry> entries = [];
     private readonly Dictionary<string, IImporter> importers = [];
@@ -31,6 +29,8 @@ public class ResourceManager
 
     public void ScanDirectory()
     {
+        if (!Directory.Exists(rootDirectory)) return;
+
         foreach (var file in Directory.EnumerateFiles(rootDirectory, "*", SearchOption.AllDirectories))
         {
             var ext = System.IO.Path.GetExtension(file).ToLowerInvariant();
@@ -39,7 +39,6 @@ public class ResourceManager
             var path = System.IO.Path.GetRelativePath(rootDirectory, file).Replace('\\', '/');
             entries[path] = new ResourceEntry
             {
-                Manager = this,
                 Path = path,
                 Type = importer.ResourceType,
                 State = ResourceState.Unloaded
@@ -47,34 +46,63 @@ public class ResourceManager
         }
     }
 
+
     public static string GetActualPath(string path) => path; //TODO: impl
 
     public ResourceRef<T> Register<T>(string path, Func<T> factory, bool pinned = false) where T : Resource
     {
-        if (entries.ContainsKey(path))
-            throw new InvalidOperationException($"Resource already registered: {path}");
-
-        var entry = new ResourceEntry
+        lock (gate)
         {
-            Manager = this,
-            Path = path,
-            Type = typeof(T),
-            State = ResourceState.Unloaded,
-            Factory = factory,
-            Pinned = pinned
-        };
-        entries[path] = entry;
-        return new ResourceRef<T>(entry);
+            if (entries.ContainsKey(path))
+                throw new InvalidOperationException($"Resource already registered: {path}");
+
+            var entry = new ResourceEntry
+            {
+                Path = path,
+                Type = typeof(T),
+                State = ResourceState.Unloaded,
+                Factory = factory,
+                Pinned = pinned
+            };
+            entries[path] = entry;
+            return new ResourceRef<T>(entry);
+        }
+    }
+
+    public bool Unregister(string path)
+    {
+        lock (gate)
+        {
+            if (!entries.TryGetValue(path, out var e) || e.RefCount > 0) return false;
+            if (e.Instance != null) Unload(e);
+            entries.Remove(path);
+            return true;
+        }
+    }
+
+    public bool TryGet<T>(string path, out ResourceRef<T> result) where T : Resource
+    {
+        lock (gate)
+        {
+            if (!entries.TryGetValue(path, out var entry))
+            {
+                result = default;
+                return false;
+            }
+            if (!typeof(T).IsAssignableFrom(entry.Type))
+                throw new InvalidCastException($"{path} is a {entry.Type.Name}, not a {typeof(T).Name}");
+
+            result = new ResourceRef<T>(entry);
+            return true;
+        }
     }
 
     public ResourceRef<T> Get<T>(string path) where T : Resource
     {
-        if (!entries.TryGetValue(path, out var entry))
-            throw new KeyNotFoundException($"Resource not registered: {path}");
-        if (!typeof(T).IsAssignableFrom(entry.Type))
-            throw new InvalidCastException($"{path} is a {entry.Type.Name}, not a {typeof(T).Name}");
-        return new ResourceRef<T>(entry);
+        if (TryGet<T>(path, out var r)) return r;
+        throw new KeyNotFoundException($"Resource not registered: {path}");
     }
+
 
     #region Ref counting
 
@@ -84,7 +112,10 @@ public class ResourceManager
         {
             e.RefCount++;
             if (e.State == ResourceState.Unloaded || e.State == ResourceState.Errored)
-                Load(e);
+            {
+                try { Load(e); }
+                catch { e.RefCount--; throw; }
+            }
         }
     }
 
@@ -104,6 +135,7 @@ public class ResourceManager
         }
     }
 
+
     public void CollectGarbage()
     {
         lock (gate)
@@ -122,14 +154,10 @@ public class ResourceManager
     {
         lock (gate)
         {
-            if (e.Instance == null)
-            {
-                Diagnostics.Debug($"Resource used without Acquire, loading on demand: {e.Path}");
-                if (e.State != ResourceState.LoadInProgress) Load(e);
-            }
-            return e.Instance!;
+            return e.Instance ?? throw new InvalidOperationException($"Resource is not loaded: {e.Path}");
         }
     }
+
 
 
     private void Load(ResourceEntry e)
@@ -149,7 +177,7 @@ public class ResourceManager
                     throw new InvalidOperationException($"No importer for '{ext}' ({e.Path})");
 
                 using var stream = File.OpenRead(System.IO.Path.Combine(rootDirectory, e.Path));
-                instance = importer.Import(stream, e);
+                instance = importer.Import(stream, e.Path);
             }
 
             instance.Init(e.Path);
@@ -171,16 +199,23 @@ public class ResourceManager
     }
 
 
+
     public void Dispose()
     {
         lock (gate)
         {
             foreach (var e in entries.Values)
+            {
+                if (e.RefCount > 0)
+                    Console.Error.WriteLine($"Still acquired at shutdown: {e.Path} (count {e.RefCount})");
+
                 if (e.Instance != null) Unload(e);
+            }
             entries.Clear();
             toCollect.Clear();
         }
     }
+
 
     #endregion
 

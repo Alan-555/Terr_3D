@@ -5,12 +5,12 @@ using Terr3D.Server.Components;
 using Terr3D.Server.Entities;
 using Terr3D.Utils;
 
-namespace Terr3D.Server.Engine;
+namespace Terr3D.Server.Core;
 
 
 public class World : IDisposable
 {
-    private static World _instance = null!;
+    internal static World _instance = null!;
     public static Camera? ActiveCamera
     {
         get => _instance._activeCamera;
@@ -26,6 +26,7 @@ public class World : IDisposable
     public static ReadOnlyCollection<Scene> LoadedScenes => _instance._loadedScenes.AsReadOnly();
 
     private readonly Scene _persistentScene = new EmptyScene();
+    public static Scene PersistentScene => _instance._persistentScene;
     private readonly Dictionary<Type, SingletonComponent> Singletons = [];
 
     private readonly SpacePartitioner _partitioner;
@@ -44,7 +45,7 @@ public class World : IDisposable
         _partitioner = SpacePartitioner.CreateRootTree();
         _worldDrawer = new();
 
-        _ = new DeveloperFeatures();
+        new DeveloperFeatures().Register();
         LoadScene(_persistentScene);
     }
 
@@ -89,7 +90,14 @@ public class World : IDisposable
 
     public static void UnloadScene(Scene scene)
     {
+        if (scene.Id == 0) throw new InvalidOperationException("Persistent scene (scene id 0) cannot be unloaded");
+        UnloadSceneInternal(scene);
+    }
+
+    internal static void UnloadSceneInternal(Scene scene)
+    {
         _instance._loadedScenes.Remove(scene);
+        scene.Unload();
     }
 
     public static void EngineLoop(float dt)
@@ -147,6 +155,11 @@ public class World : IDisposable
     public void Dispose()
     {
         _worldDrawer.Dispose();
+        foreach (var scene in LoadedScenes)
+        {
+            //bypass the scene 0 check
+            UnloadSceneInternal(scene);
+        }
         GC.SuppressFinalize(this);
     }
 }

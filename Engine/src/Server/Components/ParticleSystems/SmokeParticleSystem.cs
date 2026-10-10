@@ -20,7 +20,7 @@ public class SmokeParticleSystem : ParticleSystem
 
     int _deadParticles = 0;
 
-    public SmokeParticleSystem(Vector4 colour, int numParticles = 100, bool persistent = false) : base(numParticles, ResourceManager.Textures[ResourceIndex.Textures.Mist])
+    public SmokeParticleSystem(Vector4 colour, int numParticles = 100, bool persistent = false) : base(numParticles, "textures/mist")
     {
         _velocities = new Vector3[numParticles];
         base.colour = colour;

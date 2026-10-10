@@ -5,7 +5,7 @@ using Terr3D.Client;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Components;
 using Terr3D.Server.Shared;
-using Terr3D.Server.Engine;
+using Terr3D.Server.Core;
 using Terr3D.Utils;
 using System.Collections;
 
@@ -253,7 +253,7 @@ public abstract class Entity : IEnumerable<Entity>
     }
 
 
-    
+
 
 
     /// <summary>
@@ -375,7 +375,33 @@ public abstract class Entity : IEnumerable<Entity>
 
     protected virtual void OnDestroyed() { }
 
+    #region Resources
+    /// <summary>
+    /// Loads a resource which is guaranteed to live until this scene unloads, then it may be collected
+    /// </summary>
+    /// <typeparam name="T">A concrete type of a Resource</typeparam>
+    /// <param name="path">Path to that resource</param>
+    /// <returns>The resource instance</returns>
+    public T Load<T>(string path) where T : Resource => Onstage.Load<T>(path);
 
+    /// <summary>
+    /// Loads a resource that you have a reference to. They resource may not be loaded
+    /// </summary>
+    /// <typeparam name="T">A concrete type of a Resource</typeparam>
+    /// <param name="r">The resource ref</param>
+    /// <returns>The loaded resource</returns>
+    public T Load<T>(ResourceRef<T> r) where T : Resource => Onstage.Load(r);
+
+    /// <summary>
+    /// Creates a dynamic Resource (a resource that does not exist on disk)
+    /// </summary>
+    /// <typeparam name="T">A concrete type of a Resource</typeparam>
+    /// <param name="name">The name of this resource</param>
+    /// <param name="factory">The factory that constructs this resource</param>
+    /// <returns>The loaded resource</returns>
+    public T Create<T>(string name, Func<T> factory) where T : Resource => Onstage.Create(name, factory);
+
+    #endregion
 
     #endregion
     #region Entity API

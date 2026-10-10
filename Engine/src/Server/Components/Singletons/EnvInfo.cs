@@ -1,12 +1,15 @@
 using OpenTK.Mathematics;
 using Terr3D.Client;
 using Terr3D.Client.Resources;
+using Terr3D.Server.Core;
 
 namespace Terr3D.Server.Components;
 
 public class EnvConfig : SingletonComponent
 {
-    public static readonly ShaderProgram BuiltinSky = ResourceManager.Shaders[ResourceIndex.Shaders.Sky];
+    public static ShaderProgram BuiltinSky => World.PersistentScene.Load<ShaderProgram>("shaders/surface/Sky.frag.glsl");
+
+    private ShaderProgram _skyShaderProgram;
     public Renderer SkyRenderer {get; private set;}
 
     public Quaternion SunRotation {get; set;} = Quaternion.FromEulerAngles(new Vector3(-0.7f,0f,0f));
@@ -17,7 +20,12 @@ public class EnvConfig : SingletonComponent
 
     public EnvConfig(ShaderProgram skyShader)
     {
-       SkyRenderer = new Renderer(skyShader, ResourceManager.Meshes[ResourceIndex.Meshes.SkyQuad], RendererClass.RENDER_IGNORE);
+        _skyShaderProgram = skyShader;
+    }
+
+    protected override void OnInitialise()
+    {
+       SkyRenderer = new Renderer(_skyShaderProgram, Entity.Load<Mesh>("meshes/skyQuad.obj"), RendererClass.RENDER_IGNORE);
     }
 
     protected override void OnUpdate(float dt)

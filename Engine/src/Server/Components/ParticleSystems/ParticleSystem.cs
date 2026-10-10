@@ -12,24 +12,30 @@ public abstract class ParticleSystem : BehaviourComponent
     protected ParticleInstanceData[] _instances;
     private int _instanceVBO;
     private int _vao;
-    private Mesh _baseMesh;
-    private ShaderProgram _shader;
-    private Texture _texture;
+    private Mesh _baseMesh = null!;
+    private ShaderProgram _shader = null!;
+    private string _texturePath;
+    private Texture _texture = null!;
 
     protected int _count;
 
     protected Vector4 colour = Vector4.One;
     
 
-    public ParticleSystem(int numParticles, Texture texture)
+    public ParticleSystem(int numParticles, string texturePath)
     {
         _count = numParticles;
-        _instances = new ParticleInstanceData[numParticles];
-        _baseMesh = ResourceManager.Meshes[ResourceIndex.Meshes.Quad];
-        _shader = ResourceManager.Shaders[ResourceIndex.Shaders.Particle];
-        _texture = texture;
+        _instances = new ParticleInstanceData[_count];
+        _texturePath = texturePath;
+    }
 
-        InitGPU();
+    protected override void OnInitialise()
+    {
+        _baseMesh = Entity.Load<Mesh>("meshes/quad");
+        _shader = Entity.Load<ShaderProgram>("shaders/surface/particle");
+        _texture = Entity.Load<Texture>(_texturePath);
+
+        InitGPU(); 
     }
 
     private void InitGPU()

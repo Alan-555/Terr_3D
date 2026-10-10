@@ -1,14 +1,12 @@
-using Terr3D.Server.Engine;
+using Terr3D.Server.Core;
 using Terr3D.Utils;
 
 namespace Terr3D.Server.Entities;
 
 public sealed class Worldspawn : Entity
 {
-    public static int WorldspawnIncremental = 0;
-    private int _id = WorldspawnIncremental++;
     public new Entity Parent => null!;
-    public override string Name => $"worldspawn{_id}";
+    public override string Name => $"worldspawn{Scene.Id}";
     public override string FullName
     {
         get

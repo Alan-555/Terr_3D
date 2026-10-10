@@ -16,7 +16,7 @@ public class WireframeBoxRenderer : Renderer
     public ISpatialBounds Target => _wireframeShape;
     private ISpatialBounds _wireframeShape;
 
-    public WireframeBoxRenderer(ISpatialBounds wireframe, Vector3 colour, bool isStatic = true) : base(ResourceManager.Shaders[ResourceIndex.Shaders.FlatColor], ResourceManager.Meshes[ResourceIndex.Meshes.Cube], isStatic ? RendererClass.RENDERER_STATIC : RendererClass.RENDERER_DYNAMIC)
+    public WireframeBoxRenderer(ISpatialBounds wireframe, Vector3 colour, bool isStatic = true) : base(null, null, isStatic ? RendererClass.RENDERER_STATIC : RendererClass.RENDERER_DYNAMIC) //TODO: fix. FlatColour and Cube
     {
         material = new FlatColourMaterial()
         {

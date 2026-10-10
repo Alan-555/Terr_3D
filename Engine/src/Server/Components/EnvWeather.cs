@@ -3,12 +3,13 @@ using Terr3D.Client;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Entities;
 using Terr3D.Server.Shared;
-using Terr3D.Server.Engine;
+using Terr3D.Server.Core;
 
 namespace Terr3D.Server.Components;
 
-public class Environment : BehaviourComponent
+public class Environment/* : BehaviourComponent*/
 {
+    #if false
 
     const float defaultFog = 0.0125f;
 
@@ -216,6 +217,7 @@ public class Environment : BehaviourComponent
     {
         base.OnDestroyed();
     }
+    #endif
 }
 
  struct EnvInfo

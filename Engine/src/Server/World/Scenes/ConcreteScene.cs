@@ -4,7 +4,7 @@ using Terr3D.Server.Entities;
 using Terr3D.Server.Shared;
 using Terr3D.Utils;
 
-namespace Terr3D.Server.Engine;
+namespace Terr3D.Server.Core;
 
 public class ConcreteScene() : Scene()
 {
@@ -21,13 +21,14 @@ public class ConcreteScene() : Scene()
 
         for (int i = 0; i < 100; i++)
         {
-            var ent = new EmptyEntity($"test{i}", Worldspawn).WithComponents(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Shaded], ResourceManager.Meshes[ResourceIndex.Meshes.Bambang], RendererClass.RENDERER_DYNAMIC)
+            var ent = new EmptyEntity($"test{i}", Worldspawn).WithComponents(new Renderer(Load<ShaderProgram>("shaders/surface/Shaded.frag.glsl"), Load<Mesh>("meshes/bambang.obj"), RendererClass.RENDERER_DYNAMIC)
             {
                 material = new ShadedMaterial()
                 {
                     diffuse = (1, 1, 1),
                     specular = (0.7f, 0, 0.8f),
-                    shininess = 32
+                    shininess = 32,
+                    albedo = Load<Texture>("textures/emptyWhite.png")
 
 
                 }
@@ -41,7 +42,7 @@ public class ConcreteScene() : Scene()
 
     public override void SpawnStaticEntities()
     {
-        _ = new EnvConfig(EnvConfig.BuiltinSky);
+        new EnvConfig(EnvConfig.BuiltinSky).Register();
         var terrain = new Terrain("Terrain", Worldspawn, 50f, 256, new(0, 0, 0));
         for (int x = 0; x < 3; x++)
             for (int z = 0; z < 3; z++)
@@ -52,7 +53,7 @@ public class ConcreteScene() : Scene()
 
         for (int i = 0; i < 100; i++)
         {
-            var ent = new EmptyEntity($"test{i}", Worldspawn).WithComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Shaded], ResourceManager.Meshes[ResourceIndex.Meshes.Bambang], RendererClass.RENDERER_STATIC)
+            /*var ent = new EmptyEntity($"test{i}", Worldspawn).WithComponent(new Renderer(ResourceManager.Shaders[ResourceIndex.Shaders.Shaded], ResourceManager.Meshes[ResourceIndex.Meshes.Bambang], RendererClass.RENDERER_STATIC)
             {
                 material = new ShadedMaterial()
                 {
@@ -64,7 +65,7 @@ public class ConcreteScene() : Scene()
                 }
             });
             ent.Transform.Position = RandHelper.RandomPointInUnitCircle3D(100f);
-            Entity.Instantiate(() => ent);
+            Entity.Instantiate(() => ent);*/
         }
     }
 }

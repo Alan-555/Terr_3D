@@ -25,7 +25,7 @@ public class ShadedMaterial : Material
     public Vector3 diffuse, specular;
     public float shininess;
 
-    public Texture albedo = ResourceManager.Textures[ResourceIndex.Textures.EmptyWhite];
+    public Texture albedo;
 
     public override void SetUniforms(ShaderProgram shader)
     {

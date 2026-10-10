@@ -9,6 +9,9 @@ namespace Terr3D.Client.Resources;
 public abstract class Resource
 {
 
+    public const string DynamicRes = $"dynamic://";
+    public const string BuiltinRes = $"builtin://";
+
     public string Path { get; private set; } = "";
     public bool IsReleased { get; private set; }
 
@@ -29,12 +32,13 @@ public abstract class Resource
         if (!IsReleased)
             Diagnostics.Error($"Resource leak! {this} was never released.");
     }
+
+    public override string ToString() => $"{GetType().Name}({Path})";
 }
 
 
 internal sealed class ResourceEntry
 {
-    public ResourceManager Manager = null!;
     public string Path;
     public Type Type;
     public ResourceState State;

@@ -28,7 +28,7 @@ public abstract class Component
     /// <summary>
     /// A shortcut to the entity's Onstage
     /// </summary>
-    public Engine.Scene Onstage => Entity.Onstage;
+    public Core.Scene Onstage => Entity.Onstage;
 
 
     /// <summary>

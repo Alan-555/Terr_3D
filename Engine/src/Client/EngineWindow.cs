@@ -5,7 +5,7 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Terr3D.Client.Resources;
 using Terr3D.Server.Entities;
-using Terr3D.Server.Engine;
+using Terr3D.Server.Core;
 using Terr3D.Utils;
 using ImGuiNET;
 using Terr3D.Client.Utils;
@@ -47,14 +47,14 @@ public class EngineWindow : GameWindow
     /// <summary>
     /// An action fired once the GPU assets are ready
     /// </summary>
-    Action? OnResourcesReady;
+    Action? OnGpuContextReady;
 
     private EngineWindow(NativeWindowSettings windowSettings) : base(GameWindowSettings.Default, windowSettings)
     {
         _instance = this;
     }
 
-    public static EngineWindow ConstructScreen(Action onGpuReady)
+    public static EngineWindow ConstructScreen(Action onGpuContextReady)
     {
         var nativeWindowSettings = new NativeWindowSettings()
         {
@@ -69,7 +69,7 @@ public class EngineWindow : GameWindow
 
         return new EngineWindow(nativeWindowSettings)
         {
-            OnResourcesReady = onGpuReady
+            OnGpuContextReady = onGpuContextReady
         };
     }
 
@@ -85,11 +85,8 @@ public class EngineWindow : GameWindow
         GL.Enable(EnableCap.DepthTest);
         GL.Enable(EnableCap.CullFace);
 
-        //Now that GL is ready, we can load the resources
-        ResourceManager.InitialiseResources();
-
         //Now with resources loaded, the GPU is ready on the application level
-        OnResourcesReady?.Invoke();
+        OnGpuContextReady?.Invoke();
     }
 
 
