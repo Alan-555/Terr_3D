@@ -7,7 +7,7 @@ using Terr3D.Server.Shared;
 using Terr3D.Server.Core;
 using Terr3D.Utils;
 
-namespace Terr3D.Client;
+namespace Terr3D.Client.Rendering;
 
 public class WorldDrawer : IDisposable
 {

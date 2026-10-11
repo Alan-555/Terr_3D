@@ -9,6 +9,7 @@ using Terr3D.Server.Core;
 using Terr3D.Utils;
 using ImGuiNET;
 using Terr3D.Client.Utils;
+using Terr3D.Client.Rendering;
 
 namespace Terr3D.Client;
 
